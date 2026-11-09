@@ -5,12 +5,27 @@ import type { PassoAgente, RespostaAgente, Tratativa } from "../tipos";
 import { definicoes, executar } from "./ferramentas";
 
 const URL = process.env.LLM_BASE_URL || "https://api.groq.com/openai/v1/chat/completions";
-const MODELOS = (process.env.GROQ_MODELS ||
-  "openai/gpt-oss-120b,llama-3.3-70b-versatile,meta-llama/llama-4-scout-17b-16e-instruct,llama-3.1-8b-instant")
+// Modelos do Groq com tool calling disponíveis no plano gratuito (cada um tem cota própria de tokens por minuto).
+// O 20b vem primeiro: nos testes ele fechou todos os casos em 5-9 s; o 120b gastava a cota de 8k tokens/min
+// e muitas vezes respondia a decisão em texto ou com chamada malformada em vez de registrar.
+const MODELOS = (process.env.GROQ_MODELS || "openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.8-27b")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
 const MAX_PASSOS = 6;
+/** Se o 429 pede para esperar no máximo isso, espera e tenta o mesmo modelo de novo em vez de trocar. */
+const ESPERA_MAX_S = 6;
+
+const CONTRADIZ_ALCADA =
+  /(dentro d[ao] (limite|alçada)|alçada do agente|(execut[áa]vel|executad[ao]|executa[r]?)\s+(pelo|por|o)?\s*agente|agente\s+(executa|pode executar|resolve)|sozinho)/i;
+
+const dormir =(ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Lê o "Please try again in 3.95s" da mensagem de limite do Groq. */
+function segundosParaTentar(msg: string): number | null {
+  const m = /try again in (?:(\d+)m)?([\d.]+)s/i.exec(msg);
+  return m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : null;
+}
 
 const SISTEMA = `Você é o agente de tratativas do time de Operações da Gocase e da GoBeauté.
 Sua tarefa: investigar UM pedido com exceção e registrar a melhor tratativa, que será executada de verdade.
@@ -19,13 +34,15 @@ Como trabalhar:
 1. Na primeira resposta, chame juntas: consultar_pedido, verificar_causa_sistemica e calcular_opcoes. Chame consultar_cliente (com o customer_id do pedido) e consultar_transportadora se ajudarem a decidir.
 2. Decida com base nos números das ferramentas, nunca invente valores. Reenviar custa CMV (24% do valor) + frete; reembolsar custa o valor pago e aumenta a chance de perder o cliente.
 3. Termine chamando registrar_tratativa uma única vez. A ação principal deve estar entre as opções de calcular_opcoes. Siga a ação padrão do playbook, a não ser que os dados mostrem um motivo claro para outra; se mudar, explique na justificativa.
+4. Na justificativa, não diga quem executa nem fale de alçada ou limite: o sistema calcula isso e mostra à parte. Fale do problema, dos números e do porquê da ação.
 
 Regras de negócio:
 - Probabilidade de cancelamento por dias úteis de atraso sobre o prazo prometido: 1-2: 4%, 3-5: 10%, 6-10: 22%, >10: 40%.
 - Cliente com receita acumulada acima de R$ 1.500 recompra em 70% dos casos, os demais em 28%. Exceção mal resolvida corta isso pela metade.
 - Falha de personalização exige produzir de novo; nunca na impressora IMP-02 se ela for a causa.
 - Se o caso faz parte de um problema recorrente, preencha alerta_processo com o que precisa mudar.
-- Mensagem ao cliente: português do Brasil, tom humano, até 3 frases, sem prometer datas que dependem da transportadora. Não use o nome do cliente (não temos).
+- Mensagem ao cliente: português do Brasil, tom humano, até 3 frases, sem prometer datas que dependem da transportadora. Comece com "Oi! Aqui é do time <marca do pedido>.", cite o número do pedido e descreva o problema real dele (o tipo_excecao: vazamento, item faltante etc., não "atraso" se não for atraso). Não use o nome do cliente (não temos).
+- chamado_interno: deixe vazio, a não ser que precise de algo além do chamado padrão; o sistema gera o chamado para transportadora, CD ou produção com pedido, SKU, lote e prazo.
 - Seja breve: nada de texto fora das chamadas de ferramenta.`;
 
 type Msg = Record<string, any>;
@@ -35,7 +52,9 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
     model: modelo,
     messages: mensagens,
     tools: definicoes,
-    tool_choice: "auto",
+    // Todo turno deste agente é uma chamada de ferramenta; sem isso o gpt-oss às vezes responde a decisão em texto
+    // e gasta uma rodada extra (e a cota de tokens por minuto) só para ser cobrado a registrar.
+    tool_choice: "required",
     temperature: 0.2,
     max_tokens: 1400,
   };
@@ -56,7 +75,10 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
       throw e;
     }
     const j = await r.json();
-    return j.choices?.[0]?.message as Msg;
+    const escolha = j.choices?.[0];
+    if (escolha && !escolha.message?.tool_calls?.length)
+      console.error("[agente]", modelo, "resposta sem ferramenta:", escolha.finish_reason, String(escolha.message?.content ?? "").slice(0, 200));
+    return escolha?.message as Msg;
   } finally {
     clearTimeout(t);
   }
@@ -100,14 +122,31 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let modeloIdx = 0;
   let tratativa: Tratativa | undefined;
   let cobrancas = 0;
+  const vistas = new Set<string>();
+  let corrigiuAlcada = false;
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
+    let esperou = false;
     while (!msg && modeloIdx < MODELOS.length) {
       try {
         msg = await chamarLLM(MODELOS[modeloIdx], mensagens, chave);
       } catch (e: any) {
         const st = e?.status;
+        const espera = st === 429 ? segundosParaTentar(String(e?.message ?? "")) : null;
+        if (espera !== null && espera <= ESPERA_MAX_S && !esperou) {
+          esperou = true;
+          passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: limite por minuto, aguardando ${Math.ceil(espera)}s.` });
+          await dormir(Math.ceil(espera * 1000) + 300);
+          continue;
+        }
+        // gpt-oss às vezes gera uma chamada malformada (ex.: ferramenta "commentary"); é falha passageira, vale repetir.
+        if (st === 400 && String(e?.message ?? "").includes("tool_use_failed") && !esperou) {
+          esperou = true;
+          passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: chamada de ferramenta malformada, tentando de novo.` });
+          continue;
+        }
+        esperou = false;
         const motivo = st === 429 ? "limite gratuito atingido" : st === 404 || st === 400 ? "modelo recusou a chamada" : st ? `erro ${st}` : "sem resposta";
         passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: ${motivo}. O próximo modelo assumiu.` });
         console.error("[agente]", MODELOS[modeloIdx], String(e?.message ?? e).slice(0, 300));
@@ -125,6 +164,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
       mensagens.push({ role: "user", content: "Registre a decisão agora chamando registrar_tratativa." });
       continue;
     }
+    const vistasAntes = new Set(vistas);
     for (const ch of chamadas) {
       let args: Record<string, any> = {};
       try {
@@ -132,7 +172,25 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
       } catch {
         args = {};
       }
+      // A decisão só vale depois que o modelo leu as opções (custo e alçada) numa rodada anterior.
+      if (ch.function.name === "registrar_tratativa" && !vistasAntes.has("calcular_opcoes")) {
+        const resultado = { erro: "Antes de registrar, chame calcular_opcoes e decida com base no resultado." };
+        passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado });
+        mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(resultado) });
+        continue;
+      }
+      vistas.add(ch.function.name);
       const { resultado, tratativa: t } = executar(ch.function.name, args);
+      // A justificativa não pode dizer que o agente executa sozinho quando a alçada manda para uma pessoa.
+      if (t && t.executor === "pessoa" && CONTRADIZ_ALCADA.test(t.justificativa) && !corrigiuAlcada) {
+        corrigiuAlcada = true;
+        const erro = {
+          erro: `A tratativa NÃO foi registrada: o executor desta ação é "pessoa" (${t.motivo_alcada}), mas a justificativa diz que está na alçada do agente. Chame registrar_tratativa de novo com a justificativa corrigida.`,
+        };
+        passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado: erro });
+        mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(erro) });
+        continue;
+      }
       passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado });
       mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(resultado) });
       if (t) tratativa = t;
