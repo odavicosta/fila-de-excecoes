@@ -83,7 +83,7 @@ Regras de negócio:
 - Falha de personalização exige produzir de novo; nunca na impressora IMP-02 se ela for a causa.
 - Se o caso faz parte de um problema recorrente, preencha alerta_processo com o que precisa mudar.
 - Mensagem ao cliente: português do Brasil, tom humano, até 3 frases, sem prometer datas que dependem da transportadora. Comece com "Oi! Aqui é do time <marca do pedido>.", cite o número do pedido e descreva o problema real dele (o tipo_excecao: vazamento, item faltante etc., não "atraso" se não for atraso). Não use o nome do cliente (não temos).
-- Se consultar_pedido diz situacao_entrega "entregue com problema", o pedido CHEGOU: na mensagem e na justificativa fale do problema (vazamento, avaria, item faltante) e dos dias úteis sem solução. Nunca diga que o pedido está atrasado ou com atraso.
+- Se consultar_pedido diz situacao_entrega "entregue com problema", o pedido CHEGOU: na mensagem e na justificativa fale do problema (vazamento, avaria, item faltante) e dos dias úteis sem solução. Nunca diga que o pedido está atrasado ou com atraso. Se diz "ainda não entregue", nunca diga que o pedido chegou.
 - chamado_interno: deixe vazio, a não ser que precise de algo além do chamado padrão; o sistema gera o chamado para transportadora, CD ou produção com pedido, SKU, lote e prazo.
 - Seja breve: nada de texto fora das chamadas de ferramenta.`;
 
