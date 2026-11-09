@@ -91,8 +91,22 @@ export const definicoes = [
   },
 ] as const;
 
+/** Tipos em que o pedido já chegou, mas com problema: não é atraso, é o cliente sem o produto certo. */
+export const ENTREGUE_COM_PROBLEMA = new Set(["vazamento_produto", "avaria_transporte", "item_faltante"]);
+export const entregueComProblema = (c: Caso) => c.entregue && ENTREGUE_COM_PROBLEMA.has(c.tipo_excecao);
+const ddmm = (iso: string | null) => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}` : "");
+
+function situacaoEntrega(c: Caso) {
+  if (entregueComProblema(c))
+    return `entregue com problema em ${ddmm(c.data_entrega)} (${TIPO[c.tipo_excecao].toLowerCase()}): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução`;
+  if (c.entregue) return `entregue com atraso em ${ddmm(c.data_entrega)}`;
+  return "ainda não entregue";
+}
+
 function pedido(c: Caso) {
+  const comProblema = entregueComProblema(c);
   return {
+    situacao_entrega: situacaoEntrega(c),
     order_id: c.order_id,
     customer_id: c.customer_id,
     marca: c.marca,
@@ -106,8 +120,10 @@ function pedido(c: Caso) {
     data_prometida_ao_cliente: c.data_prometida,
     data_prometida_correta_pelo_sla: c.data_prometida_correta,
     data_entrega: c.data_entrega,
-    atraso_dias_uteis_vs_prometido: c.atraso_du,
-    atraso_dias_uteis_vs_sla_contratado: c.atraso_sla_du,
+    // Para quem recebeu com problema, o "atraso" é tempo sem solução, não entrega atrasada.
+    ...(comProblema
+      ? { dias_uteis_sem_solucao_desde_o_prazo_prometido: c.atraso_du }
+      : { atraso_dias_uteis_vs_prometido: c.atraso_du, atraso_dias_uteis_vs_sla_contratado: c.atraso_sla_du }),
     transportadora: c.transportadora,
     destino: `${c.cidade}/${c.uf}`,
     producao: { maquina: c.maquina, turno: c.turno, cd: c.cd, lote: c.lote_produto },

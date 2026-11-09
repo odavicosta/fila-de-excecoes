@@ -176,8 +176,12 @@ export function montarTratativa(
 }
 
 function justificativaPadrao(c: Caso, acao: CodigoAcao, custo: number) {
+  const dias = `${c.atraso_du} ${c.atraso_du === 1 ? "dia útil" : "dias úteis"}`;
+  const chegouComProblema = c.entregue && ["vazamento_produto", "avaria_transporte", "item_faltante"].includes(c.tipo_excecao);
   const partes = [
-    `${TIPO[c.tipo_excecao]} com ${c.atraso_du} ${c.atraso_du === 1 ? "dia útil" : "dias úteis"} de atraso sobre o prazo prometido: ${Math.round(c.p_cancel_hoje * 100)}% de chance de cancelamento.`,
+    chegouComProblema
+      ? `${TIPO[c.tipo_excecao]} em pedido já entregue, ${dias} sem solução desde o prazo prometido: ${Math.round(c.p_cancel_hoje * 100)}% de chance de cancelamento.`
+      : `${TIPO[c.tipo_excecao]} com ${dias} de atraso sobre o prazo prometido: ${Math.round(c.p_cancel_hoje * 100)}% de chance de cancelamento.`,
   ];
   if (acao === "reenvio" || acao === "tratar_como_extravio")
     partes.push(`Reenviar custa ${brl(custo, 2)} (CMV + frete), contra ${brl(c.valor, 2)} de um reembolso.`);

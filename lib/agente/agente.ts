@@ -2,7 +2,7 @@ import "server-only";
 import { casoPorId } from "../dados";
 import { tratativaPorRegras } from "../regras";
 import type { PassoAgente, RespostaAgente, Tratativa } from "../tipos";
-import { definicoes, executar } from "./ferramentas";
+import { definicoes, entregueComProblema, executar } from "./ferramentas";
 
 const URL = process.env.LLM_BASE_URL || "https://api.groq.com/openai/v1/chat/completions";
 // Modelos do Groq com tool calling disponíveis no plano gratuito (cada um tem cota própria de tokens por minuto).
@@ -83,6 +83,7 @@ Regras de negócio:
 - Falha de personalização exige produzir de novo; nunca na impressora IMP-02 se ela for a causa.
 - Se o caso faz parte de um problema recorrente, preencha alerta_processo com o que precisa mudar.
 - Mensagem ao cliente: português do Brasil, tom humano, até 3 frases, sem prometer datas que dependem da transportadora. Comece com "Oi! Aqui é do time <marca do pedido>.", cite o número do pedido e descreva o problema real dele (o tipo_excecao: vazamento, item faltante etc., não "atraso" se não for atraso). Não use o nome do cliente (não temos).
+- Se consultar_pedido diz situacao_entrega "entregue com problema", o pedido CHEGOU: na mensagem e na justificativa fale do problema (vazamento, avaria, item faltante) e dos dias úteis sem solução. Nunca diga que o pedido está atrasado ou com atraso.
 - chamado_interno: deixe vazio, a não ser que precise de algo além do chamado padrão; o sistema gera o chamado para transportadora, CD ou produção com pedido, SKU, lote e prazo.
 - Seja breve: nada de texto fora das chamadas de ferramenta.`;
 
@@ -171,6 +172,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let corrigiuAlcada = false;
   let teveLimite = false;
   let corrigiuCorte = false;
+  let corrigiuAtraso = false;
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
@@ -246,6 +248,16 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         corrigiuAlcada = true;
         const erro = {
           erro: `A tratativa NÃO foi registrada: o executor desta ação é "pessoa" (${t.motivo_alcada}), mas a justificativa diz que está na alçada do agente. Chame registrar_tratativa de novo com a justificativa corrigida.`,
+        };
+        passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado: erro });
+        mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(erro) });
+        continue;
+      }
+      // Pedido entregue com problema não está atrasado: a mensagem ao cliente não pode dizer isso.
+      if (t && entregueComProblema(caso) && /atras/i.test(String(args.mensagem_cliente ?? "")) && !corrigiuAtraso) {
+        corrigiuAtraso = true;
+        const erro = {
+          erro: `A tratativa NÃO foi registrada: o pedido foi entregue com problema (${caso.tipo_excecao}), não está atrasado. Reescreva a mensagem ao cliente falando do problema, sem dizer que está atrasado, e registre de novo.`,
         };
         passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado: erro });
         mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(erro) });
