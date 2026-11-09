@@ -182,17 +182,22 @@ function causa(c: Caso) {
   return achados.length ? { faz_parte_de_problema_recorrente: true, achados } : { faz_parte_de_problema_recorrente: false };
 }
 
+const candidatas = (c: Caso): CodigoAcao[] => [
+  ...new Set<CodigoAcao>(c.status === "aguardando_cliente" ? ["lembrete_cliente", ...CANDIDATAS[c.tipo_excecao]] : CANDIDATAS[c.tipo_excecao]),
+];
+
 export function opcoes(c: Caso) {
-  const cand = c.status === "aguardando_cliente" ? ["lembrete_cliente", ...CANDIDATAS[c.tipo_excecao]] : CANDIDATAS[c.tipo_excecao];
+  const cand = candidatas(c);
   const padrao = acaoPadrao(c);
   return {
     chance_cancelamento_hoje: P_CANCEL(c.atraso_du),
     perda_esperada_se_resolver_hoje: c.perda_hoje,
     perda_esperada_se_esperar_5_dias_uteis: c.perda_5d,
     acao_padrao_do_playbook: { acao: padrao.acao, complementares: padrao.complementares },
-    opcoes: [...new Set(cand)].map((a) => {
-      const custo = custoAcao(c, a as CodigoAcao);
-      return { acao: a, descricao: ACAO[a as CodigoAcao], custo, executor: alcada(c, [a as CodigoAcao], custo).executor };
+    opcoes: cand.map((a) => {
+      const custo = custoAcao(c, a);
+      const { executor, motivo } = alcada(c, [a], custo);
+      return { acao: a, descricao: ACAO[a], custo, executor, motivo_alcada: motivo };
     }),
     regra_de_alcada: "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa.",
   };
@@ -221,7 +226,9 @@ export function executar(nome: string, args: Record<string, any>): { resultado: 
         const c = casoPorId(String(args.order_id ?? ""));
         if (!c) return { resultado: { erro: "pedido não encontrado" } };
         const acao = args.acao as CodigoAcao;
-        if (!CODIGOS_ACAO.includes(acao)) return { resultado: { erro: `ação inválida. Use uma de: ${CODIGOS_ACAO.join(", ")}` } };
+        const validas = candidatas(c);
+        if (!validas.includes(acao))
+          return { resultado: { erro: `ação "${acao}" não serve para este caso. A ação principal deve ser uma de: ${validas.join(", ")}` } };
         const compl = (Array.isArray(args.acoes_complementares) ? args.acoes_complementares : []).filter(
           (a: string) => CODIGOS_ACAO.includes(a as CodigoAcao) && a !== acao,
         ) as CodigoAcao[];
