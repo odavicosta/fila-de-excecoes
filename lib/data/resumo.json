@@ -1,0 +1,413 @@
+{
+ "kpis": {
+  "linhas": 2042,
+  "pedidos": 2000,
+  "duplicados": 42,
+  "valor_pedidos": 220161.37,
+  "perda_esperada_hoje": 97301.49,
+  "perda_esperada_5d": 114124.04,
+  "fila_humana": 1451,
+  "fila_automatica": 549,
+  "dias_para_zerar_fifo": 10,
+  "capacidade": 150,
+  "horas_liberadas_automacao": 109.8,
+  "politicas": {
+   "fifo": 97144.41,
+   "maior_valor": 85713.6,
+   "maior_atraso": 96466.25,
+   "perda_hoje": 91127.03,
+   "perda_5d": 87192.92,
+   "custo_espera": 78115.84,
+   "urgencia_risco": 84182.39
+  },
+  "politica_escolhida": "urgencia_risco",
+  "dia_medio_teto": {
+   "fifo": 2.52,
+   "maior_valor": 4.26,
+   "maior_atraso": 2.47,
+   "perda_hoje": 2.87,
+   "perda_5d": 3.53,
+   "custo_espera": 6.21,
+   "urgencia_risco": 4.19
+  },
+  "alfa": 0.5,
+  "promessa_perda_hoje": 13356.73,
+  "promessa_perda_corrigida": 8972.24,
+  "economia_vs_fifo": 12962.02,
+  "perda_antes": 128239.13,
+  "perda_depois": 105288.38,
+  "perda_minima": 97301.49,
+  "recuperado_backlog": 22950.75,
+  "dias_para_zerar_antes": 14,
+  "evitado_hoje_prior": 4856.46,
+  "evitado_hoje_fifo": 0.0,
+  "valor_hoje_prior": 29405.64,
+  "valor_hoje_fifo": 17033.03,
+  "custo_reenvio_medio": 44.01,
+  "custo_reembolso_medio": 110.08,
+  "clientes_vip": 177,
+  "formula_corridos": 1.0,
+  "promessa_curta_media": 1.53,
+  "por_tipo": [
+   {
+    "tipo": "atraso_entrega",
+    "n": 497,
+    "valor": 52927.52,
+    "perda_hoje": 13356.73,
+    "perda_5d": 18130.96
+   },
+   {
+    "tipo": "avaria_transporte",
+    "n": 186,
+    "valor": 25353.58,
+    "perda_hoje": 11104.41,
+    "perda_5d": 12684.64
+   },
+   {
+    "tipo": "devolvido_transportadora",
+    "n": 182,
+    "valor": 19950.47,
+    "perda_hoje": 10212.78,
+    "perda_5d": 12020.87
+   },
+   {
+    "tipo": "endereco_divergente",
+    "n": 125,
+    "valor": 12457.96,
+    "perda_hoje": 6698.97,
+    "perda_5d": 7767.63
+   },
+   {
+    "tipo": "extravio",
+    "n": 60,
+    "valor": 6201.86,
+    "perda_hoje": 2307.07,
+    "perda_5d": 3017.32
+   },
+   {
+    "tipo": "falha_personalizacao",
+    "n": 130,
+    "valor": 17037.57,
+    "perda_hoje": 7588.09,
+    "perda_5d": 8682.28
+   },
+   {
+    "tipo": "item_faltante",
+    "n": 278,
+    "valor": 29468.12,
+    "perda_hoje": 16868.79,
+    "perda_5d": 18832.49
+   },
+   {
+    "tipo": "pagamento_pendente",
+    "n": 141,
+    "valor": 13530.58,
+    "perda_hoje": 7188.91,
+    "perda_5d": 8052.53
+   },
+   {
+    "tipo": "rastreio_parado",
+    "n": 169,
+    "valor": 19342.33,
+    "perda_hoje": 9195.36,
+    "perda_5d": 10450.09
+   },
+   {
+    "tipo": "ruptura_pos_venda",
+    "n": 121,
+    "valor": 11998.35,
+    "perda_hoje": 6072.17,
+    "perda_5d": 6814.89
+   },
+   {
+    "tipo": "vazamento_produto",
+    "n": 111,
+    "valor": 11893.03,
+    "perda_hoje": 6708.21,
+    "perda_5d": 7670.35
+   }
+  ],
+  "por_status": {
+   "aberta": 854,
+   "aguardando_transportadora": 485,
+   "em_analise": 449,
+   "aguardando_cliente": 212
+  },
+  "processo_mensal": 37661.62,
+  "casos_com_causa_sistemica": 985
+ },
+ "achados": [
+  {
+   "id": "promessa",
+   "titulo": "O checkout promete prazo em dias corridos, não em dias úteis",
+   "area": "Sistema / checkout",
+   "evidencia": "Em 100% dos pedidos, a data prometida é a data do pedido mais (1 + SLA) dias corridos. A regra do negócio é em dias úteis. O cliente recebe uma promessa em média 1,5 dias úteis mais curta do que o contrato com a transportadora permite. Dos 497 atrasos registrados, 147 (30%) estão dentro do SLA contratado: a transportadora cumpriu, a promessa é que estava errada.",
+   "casos": 147,
+   "acao": "Corrigir o cálculo da data prometida para dias úteis (com feriados). Zera esses 'atrasos fabricados' e reduz o risco de cancelamento em todos os outros.",
+   "tipo": "processo",
+   "custo_mensal": 3043.99,
+   "graf": {
+    "label": "Atrasos dentro x fora do SLA contratado",
+    "dados": [
+     {
+      "k": "Dentro do SLA (promessa errada)",
+      "v": 147
+     },
+     {
+      "k": "Fora do SLA (atraso real)",
+      "v": 350
+     }
+    ]
+   }
+  },
+  {
+   "id": "rota_ne",
+   "titulo": "Rota Express no Nordeste degradou a partir de setembro",
+   "area": "Transportadora",
+   "evidencia": "396 atrasos e rastreios parados vêm da Rota Express em estados do Nordeste. 83% das exceções da Rota no NE são atraso ou rastreio parado, contra 17% nas outras transportadoras na mesma região. O volume salta na semana de 31/08 (semana 36) e se mantém.",
+   "casos": 396,
+   "acao": "Acionar a Rota Express com os dados (multa contratual / plano de ação) e migrar o volume do NE para a Entrega Já (SLA 5 du vs 6 du da Rota) enquanto o problema durar.",
+   "tipo": "processo",
+   "custo_mensal": 7539.75,
+   "graf": {
+    "label": "Atrasos + rastreio parado da Rota no NE por semana do pedido",
+    "dados": [
+     {
+      "k": "S31",
+      "v": 5
+     },
+     {
+      "k": "S32",
+      "v": 35
+     },
+     {
+      "k": "S33",
+      "v": 33
+     },
+     {
+      "k": "S34",
+      "v": 26
+     },
+     {
+      "k": "S35",
+      "v": 40
+     },
+     {
+      "k": "S36",
+      "v": 75
+     },
+     {
+      "k": "S37",
+      "v": 66
+     },
+     {
+      "k": "S38",
+      "v": 60
+     },
+     {
+      "k": "S39",
+      "v": 56
+     }
+    ]
+   }
+  },
+  {
+   "id": "imp02",
+   "titulo": "A impressora IMP-02 gera 6x mais falhas de personalização",
+   "area": "Produção (CD1)",
+   "evidencia": "77 das 130 falhas de personalização (59%) saíram da IMP-02, nos três turnos. As outras cinco impressoras têm em média 11 falhas cada. Como acontece em todos os turnos, o problema é a máquina, não o operador.",
+   "casos": 77,
+   "acao": "Tirar a IMP-02 da fila para manutenção/calibração e redistribuir para IMP-01 e IMP-03. Reproduzir os itens pendentes em outra máquina.",
+   "tipo": "processo",
+   "custo_mensal": 3453.38,
+   "graf": {
+    "label": "Falhas de personalização por impressora",
+    "dados": [
+     {
+      "k": "IMP-01",
+      "v": 11
+     },
+     {
+      "k": "IMP-02",
+      "v": 77
+     },
+     {
+      "k": "IMP-03",
+      "v": 11
+     },
+     {
+      "k": "IMP-04",
+      "v": 10
+     },
+     {
+      "k": "IMP-05",
+      "v": 11
+     },
+     {
+      "k": "IMP-06",
+      "v": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "cd2_noite",
+   "titulo": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+   "area": "Separação (CD2)",
+   "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. 75% desses pedidos tinham brinde de campanha.",
+   "casos": 210,
+   "acao": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+   "tipo": "processo",
+   "custo_mensal": 11921.65,
+   "graf": {
+    "label": "Itens faltantes por CD e turno",
+    "dados": [
+     {
+      "k": "CD1 manhã",
+      "v": 8
+     },
+     {
+      "k": "CD1 noite",
+      "v": 15
+     },
+     {
+      "k": "CD1 tarde",
+      "v": 9
+     },
+     {
+      "k": "CD2 manhã",
+      "v": 18
+     },
+     {
+      "k": "CD2 noite",
+      "v": 210
+     },
+     {
+      "k": "CD2 tarde",
+      "v": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": "lote",
+   "titulo": "Lote L2607-B do Condicionador Anti-Frizz 1000ml (Ápice) está vazando",
+   "area": "Qualidade / fornecedor",
+   "evidencia": "77 dos 111 vazamentos (69%) são do lote L2607-B, praticamente todos do mesmo produto. Os demais lotes têm em média 3 vazamentos.",
+   "casos": 77,
+   "acao": "Bloquear o lote no estoque, abrir não-conformidade com o fornecedor e reenviar de outro lote.",
+   "tipo": "processo",
+   "custo_mensal": 4810.68,
+   "graf": {
+    "label": "Vazamentos por lote (top 6)",
+    "dados": [
+     {
+      "k": "L2607-B",
+      "v": 77
+     },
+     {
+      "k": "L2608-A",
+      "v": 6
+     },
+     {
+      "k": "L2608-C",
+      "v": 6
+     },
+     {
+      "k": "L2607-A",
+      "v": 4
+     },
+     {
+      "k": "L2605-C",
+      "v": 4
+     },
+     {
+      "k": "L2605-A",
+      "v": 3
+     }
+    ]
+   }
+  },
+  {
+   "id": "carga_avaria",
+   "titulo": "Carga Norte avaria 5x mais que as outras transportadoras",
+   "area": "Transportadora",
+   "evidencia": "98 das 186 avarias são da Carga Norte, que tem só 17% das exceções. Avaria é 29% das exceções dela contra 5% nas demais.",
+   "casos": 98,
+   "acao": "Pedir ressarcimento das avarias à Carga Norte e revisar embalagem/manuseio; se não melhorar, reduzir o volume com ela.",
+   "tipo": "processo",
+   "custo_mensal": 5305.48,
+   "graf": {
+    "label": "Avarias por transportadora",
+    "dados": [
+     {
+      "k": "Carga Norte",
+      "v": 98
+     },
+     {
+      "k": "Postal Nacional",
+      "v": 27
+     },
+     {
+      "k": "Veloz Log",
+      "v": 25
+     },
+     {
+      "k": "Entrega Já",
+      "v": 20
+     },
+     {
+      "k": "Rota Express",
+      "v": 16
+     }
+    ]
+   }
+  },
+  {
+   "id": "ruptura",
+   "titulo": "Ruptura pós-venda concentrada em poucos SKUs da Kokeshi",
+   "area": "Estoque / site",
+   "evidencia": "59 das 121 rupturas (49%) são da Kokeshi. Só o Óleo de Rosa Mosqueta 20ml (KSH-1010) responde por 18. O site vende o que não tem.",
+   "casos": 59,
+   "acao": "Sincronizar o estoque do site com o WMS para esses SKUs e travar a venda abaixo de um estoque de segurança.",
+   "tipo": "processo",
+   "custo_mensal": 1586.69,
+   "graf": {
+    "label": "Rupturas por SKU (top 5)",
+    "dados": [
+     {
+      "k": "KSH-1010",
+      "v": 18
+     },
+     {
+      "k": "KSH-1009",
+      "v": 10
+     },
+     {
+      "k": "KSH-1011",
+      "v": 9
+     },
+     {
+      "k": "GOC-2006",
+      "v": 8
+     },
+     {
+      "k": "KSH-1013",
+      "v": 7
+     }
+    ]
+   }
+  },
+  {
+   "id": "duplicados",
+   "titulo": "42 pedidos aparecem duas vezes na fila",
+   "area": "Dados",
+   "evidencia": "2.042 linhas, mas só 2.000 pedidos únicos: 42 exceções foram registradas em dobro (mesmo pedido e tipo, status diferente). Sem limpar, duas pessoas tratam o mesmo caso (8,4 horas de trabalho jogadas fora).",
+   "casos": 42,
+   "acao": "Chave única por pedido + tipo de exceção na abertura. O app já funde os duplicados.",
+   "tipo": "dados",
+   "custo_mensal": 0.0,
+   "graf": null
+  }
+ ]
+}
