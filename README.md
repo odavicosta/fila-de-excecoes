@@ -50,7 +50,7 @@ Foram simulados sete critérios de ordenação sobre a fila humana, a 150 casos 
 | `calcular_opcoes` | Custo, alçada e perda esperada de cada ação possível, e a ação padrão do playbook |
 | `registrar_tratativa` | Grava a decisão; custo e alçada são calculados pelo sistema, não pelo modelo |
 
-A alçada (`lib/regras.ts`) é fixa no código: o agente executa sozinho mensagens, cobranças, confirmações de endereço, links de pagamento e reenvios de até R$ 60 (90% dos casos). Reembolso, oferta de substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação.
+A alçada (`lib/regras.ts`) é fixa no código: o agente executa sozinho mensagens, cobranças, confirmações de endereço, links de pagamento e reenvios de até R$ 60 (87% dos casos). Reembolso, oferta de substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação.
 
 O modelo roda no Groq. Se um modelo bate no limite gratuito, o próximo da lista assume. Se nenhum responder, o mesmo playbook monta a tratativa e o app avisa, para a solução nunca ficar fora do ar.
 
