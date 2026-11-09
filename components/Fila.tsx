@@ -383,10 +383,22 @@ function Painel({
               <dd>
                 {dataBR(caso.data_prometida)} ao cliente; pelo SLA seria {dataBR(caso.data_prometida_correta)}
               </dd>
-              <dt>Atraso</dt>
-              <dd>
-                {caso.atraso_du} dias úteis, {pct(caso.p_cancel_hoje)} de chance de cancelar
-              </dd>
+              {caso.entregue && ["vazamento_produto", "avaria_transporte", "item_faltante"].includes(caso.tipo_excecao) ? (
+                <>
+                  <dt>Sem solução</dt>
+                  <dd>
+                    Entregue em {dataBR(caso.data_entrega!)} com problema; {caso.atraso_du} dias úteis sem solução desde o prazo,{" "}
+                    {pct(caso.p_cancel_hoje)} de chance de cancelar
+                  </dd>
+                </>
+              ) : (
+                <>
+                  <dt>Atraso</dt>
+                  <dd>
+                    {caso.atraso_du} dias úteis, {pct(caso.p_cancel_hoje)} de chance de cancelar
+                  </dd>
+                </>
+              )}
               <dt>Cliente</dt>
               <dd>
                 {caso.n_pedidos} pedidos, {brl(caso.receita_acumulada)} acumulados{caso.cliente_vip ? " (alto valor)" : ""}
