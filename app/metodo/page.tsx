@@ -64,9 +64,16 @@ export default function Metodo() {
       <p>Nos demais, a alçada é fixa no código, e a IA não consegue mudá-la:</p>
       <ul>
         <li>Mensagens, cobrança da transportadora, confirmação de endereço e link de pagamento: o agente executa sozinho.</li>
-        <li>Reenvio ou nova produção até {brl(LIMITE_AGENTE)} (90% dos casos custam menos que isso): o agente executa sozinho.</li>
+        <li>Reenvio ou nova produção até {brl(LIMITE_AGENTE)} (87% dos casos custam menos que isso): o agente executa sozinho.</li>
         <li>Reembolso, oferta de substituto, gasto acima de {brl(LIMITE_AGENTE)} ou qualquer gasto com cliente de alto valor: uma pessoa aprova.</li>
       </ul>
+      <p>
+        <b>Quando vira extravio.</b> Atraso na entrega e rastreio parado seguem o mesmo critério: se o pedido não foi entregue e já passou mais de 10 dias
+        úteis do SLA contratado, é tratado como extravio (reenvio + cobrança da transportadora); antes disso, cobramos a transportadora e avisamos o
+        cliente. Medimos contra o SLA, e não contra a data do checkout, porque extravio é falha da transportadora e a data prometida ao cliente está
+        errada. O corte vem dos dados: nenhuma das 809 entregas da base chegou mais de 10 dias úteis depois do SLA (95% chegaram em até 6). Hoje são 34
+        atrasos e 86 rastreios parados nessa situação.
+      </p>
 
       <h2>5. Como o agente trabalha</h2>
       <p>

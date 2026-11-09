@@ -62,16 +62,24 @@ export function alertaProcesso(c: Caso): string | null {
   return null;
 }
 
+/**
+ * Quando um pedido não entregue passa a ser tratado como extravio, para atraso_entrega e rastreio_parado.
+ * Mede contra o SLA contratado (o que a transportadora se comprometeu), não contra a data do checkout, que está errada.
+ * Nenhuma das 809 entregas da base chegou mais de 10 dias úteis depois do SLA (p95 = 6, p99 = 9, máx. = 10).
+ */
+export const EXTRAVIO_DU_APOS_SLA = 10;
+export const pareceExtravio = (c: Caso) => !c.entregue && c.atraso_sla_du > EXTRAVIO_DU_APOS_SLA;
+
 /** Ação padrão por tipo de exceção. É o que o agente faria sem IA, e a referência que ele recebe. */
 export function acaoPadrao(c: Caso): { acao: CodigoAcao; complementares: CodigoAcao[] } {
   if (c.status === "aguardando_cliente") return { acao: "lembrete_cliente", complementares: [] };
   switch (c.tipo_excecao) {
     case "atraso_entrega":
       if (c.entregue) return { acao: "desculpas_cupom", complementares: [] };
-      if (c.atraso_sla_du > 10) return { acao: "tratar_como_extravio", complementares: ["cobrar_transportadora", "contato_proativo"] };
+      if (pareceExtravio(c)) return { acao: "tratar_como_extravio", complementares: ["cobrar_transportadora", "contato_proativo"] };
       return { acao: "cobrar_transportadora", complementares: ["contato_proativo"] };
     case "rastreio_parado":
-      if (c.atraso_du > 5) return { acao: "tratar_como_extravio", complementares: ["cobrar_transportadora", "contato_proativo"] };
+      if (pareceExtravio(c)) return { acao: "tratar_como_extravio", complementares: ["cobrar_transportadora", "contato_proativo"] };
       return { acao: "cobrar_transportadora", complementares: ["contato_proativo"] };
     case "extravio":
       return { acao: "reenvio", complementares: ["cobrar_transportadora", "contato_proativo"] };
