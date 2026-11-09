@@ -101,7 +101,8 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   const inicio = Date.now();
   const caso = casoPorId(orderId);
   if (!caso) throw new Error("Pedido não encontrado na fila de exceções.");
-  const chave = process.env.GROQ_API_KEY;
+  // Tolera erros comuns ao colar a chave no painel (espaços, quebra de linha, aspas, "GROQ_API_KEY=" junto).
+  const chave = (process.env.GROQ_API_KEY ?? "").trim().replace(/^GROQ_API_KEY=/, "").replace(/^["']|["']$/g, "").trim();
   const passos: PassoAgente[] = [];
 
   const porRegras = (aviso: string): RespostaAgente => ({
@@ -147,6 +148,11 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
           continue;
         }
         esperou = false;
+        // Chave recusada vale para todos os modelos: não adianta tentar o próximo.
+        if (st === 401 || st === 403) {
+          console.error("[agente]", MODELOS[modeloIdx], String(e?.message ?? e).slice(0, 300));
+          return porRegras(`A chave do Groq foi recusada (erro ${st}). Confira a GROQ_API_KEY. A tratativa foi montada pelo playbook de regras.`);
+        }
         const motivo = st === 429 ? "limite gratuito atingido" : st === 404 || st === 400 ? "modelo recusou a chamada" : st ? `erro ${st}` : "sem resposta";
         passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: ${motivo}. O próximo modelo assumiu.` });
         console.error("[agente]", MODELOS[modeloIdx], String(e?.message ?? e).slice(0, 300));
