@@ -95,7 +95,8 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
     // e gasta uma rodada extra (e a cota de tokens por minuto) só para ser cobrado a registrar.
     tool_choice: "required",
     temperature: 0.2,
-    max_tokens: 1400,
+    // O qwen gasta parte do limite raciocinando; com 1400 a justificativa do GB7004923 saiu cortada no meio.
+    max_tokens: modelo.startsWith("qwen/") ? 4000 : 1400,
   };
   if (modelo.startsWith("openai/gpt-oss")) corpo.reasoning_effort = "low";
   const ctrl = new AbortController();
@@ -167,6 +168,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   const vistas = new Set<string>();
   let corrigiuAlcada = false;
   let teveLimite = false;
+  let corrigiuCorte = false;
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
@@ -243,6 +245,15 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         const erro = {
           erro: `A tratativa NÃO foi registrada: o executor desta ação é "pessoa" (${t.motivo_alcada}), mas a justificativa diz que está na alçada do agente. Chame registrar_tratativa de novo com a justificativa corrigida.`,
         };
+        passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado: erro });
+        mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(erro) });
+        continue;
+      }
+      // Texto que termina sem pontuação quase sempre foi cortado pelo limite de tokens.
+      const cortado = t && [args.justificativa, args.mensagem_cliente].some((s) => typeof s === "string" && s.trim() && !/[.!?…)"”]$/.test(s.trim()));
+      if (cortado && !corrigiuCorte) {
+        corrigiuCorte = true;
+        const erro = { erro: "A tratativa NÃO foi registrada: a justificativa ou a mensagem terminou no meio de uma frase. Registre de novo com frases completas e mais curtas." };
         passos.push({ tipo: "ferramenta", nome: ch.function.name, argumentos: args, resultado: erro });
         mensagens.push({ role: "tool", tool_call_id: ch.id, content: JSON.stringify(erro) });
         continue;
