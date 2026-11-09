@@ -1,0 +1,11 @@
+node_modules
+.next
+.env*
+!.env.example
+# Os dados brutos e o enunciado do desafio não vão para o repositório público
+dados/*.csv
+dados/*.md
+*.pdf
+.vercel
+tsconfig.tsbuildinfo
+next-env.d.ts
