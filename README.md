@@ -52,7 +52,9 @@ Foram simulados sete critérios de ordenação sobre a fila humana, a 150 casos 
 
 A alçada (`lib/regras.ts`) é fixa no código: o agente executa sozinho mensagens, cobranças, confirmações de endereço, links de pagamento e reenvios de até R$ 60 (87% dos casos). Reembolso, oferta de substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação.
 
-O modelo roda no Groq. Se um modelo bate no limite gratuito, o próximo da lista assume. Se nenhum responder, o mesmo playbook monta a tratativa e o app avisa, para a solução nunca ficar fora do ar.
+O modelo roda no Groq (`gpt-oss-20b`, depois `gpt-oss-120b` e `qwen3.8-27b`). No plano gratuito cada modelo tem cerca de 8 mil tokens por minuto e um caso gasta de 5 a 7 mil, então: se o limite pede poucos segundos, o agente espera; se não, o próximo modelo assume. Se nenhum responder, o mesmo playbook monta a tratativa e o app avisa, para a solução nunca ficar fora do ar.
+
+O código também segura o modelo: `registrar_tratativa` só é aceita depois de `calcular_opcoes`, a ação precisa estar entre as opções do caso, e uma justificativa que diga "dentro da alçada do agente" num caso que vai para aprovação é devolvida para correção.
 
 ## Rodar localmente
 
