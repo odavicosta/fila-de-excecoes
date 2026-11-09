@@ -1,5 +1,5 @@
 import Fila from "@/components/Fila";
-import { casosResumidos, resumo } from "@/lib/dados";
+import { casosResumidos, idsPregerados, resumo } from "@/lib/dados";
 import { brl, num } from "@/lib/rotulos";
 
 export const metadata = { title: "Fila do dia · Fila de exceções" };
@@ -21,6 +21,7 @@ export default async function PaginaFila({ searchParams }: { searchParams: Promi
         capacidade={k.capacidade}
         inicial={sp.pedido}
         abaInicial={sp.aba === "automatica" ? "automatica" : sp.pedido ? "humana" : "hoje"}
+        idsPregerados={idsPregerados}
       />
     </>
   );

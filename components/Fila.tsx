@@ -29,14 +29,26 @@ function gravarRegistros(r: Record<string, Registro>) {
   }
 }
 
-export default function Fila({ casos, capacidade, inicial, abaInicial }: { casos: CasoResumido[]; capacidade: number; inicial?: string; abaInicial?: Aba }) {
+export default function Fila({
+  casos,
+  capacidade,
+  inicial,
+  abaInicial,
+  idsPregerados = [],
+}: {
+  casos: CasoResumido[];
+  capacidade: number;
+  inicial?: string;
+  abaInicial?: Aba;
+  idsPregerados?: string[];
+}) {
   const [aba, setAba] = useState<Aba>(abaInicial ?? "hoje");
   const [tipo, setTipo] = useState<string>("");
   const [busca, setBusca] = useState("");
   const [sel, setSel] = useState<string | null>(inicial ?? null);
   const [registros, setRegistros] = useState<Record<string, Registro>>({});
   const [lote, setLote] = useState<{ feitos: number; total: number; aguardandoAte?: number } | null>(null);
-  const pregerados = useMemo(() => new Set<string>(), []);
+  const pregerados = useMemo(() => new Set(idsPregerados), [idsPregerados]);
   const pararLote = useRef(false);
 
   useEffect(() => setRegistros(lerRegistros()), []);
@@ -259,6 +271,7 @@ export default function Fila({ casos, capacidade, inicial, abaInicial }: { casos
                             {CAUSA[k]}
                           </span>
                         ))}
+                        {!reg && pregerados.has(c.order_id) && <span className="etiqueta">Tratativa pronta</span>}
                         {reg && (
                           <span className={`etiqueta ${reg.resposta.tratativa.executor}`}>
                             {reg.situacao === "aprovada" ? "Executada" : reg.situacao === "recusada" ? "Recusada" : reg.resposta.tratativa.executor === "agente" ? "Agente pode executar" : "Aguarda aprovação"}
@@ -298,6 +311,8 @@ function Painel({
   const [rodando, setRodando] = useState(false);
 
   const ref = useRef<HTMLElement>(null);
+  const registroRef = useRef(registro);
+  registroRef.current = registro;
   useEffect(() => {
     if (!id) return;
     if (window.innerWidth < 960) ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -305,9 +320,14 @@ function Painel({
     setErro(null);
     fetch(`/api/caso?id=${id}`)
       .then((r) => r.json())
-      .then((j) => (j.erro ? setErro(j.erro) : setCaso(j.caso)))
+      .then((j) => {
+        if (j.erro) return setErro(j.erro);
+        setCaso(j.caso);
+        // Tratativa que a IA já gerou: aparece na hora, sem gastar cota. "Rodar de novo" roda ao vivo.
+        if (j.pregerado && !registroRef.current) salvar(id, { resposta: j.pregerado, situacao: "pendente", em: new Date().toISOString() });
+      })
       .catch(() => setErro("Não foi possível carregar o caso."));
-  }, [id]);
+  }, [id, salvar]);
 
   if (!id)
     return (
@@ -446,7 +466,13 @@ function Passos({ passos, resposta }: { passos: PassoAgente[]; resposta: Respost
     <div>
       <h3>Investigação</h3>
       <p className="miudo" style={{ margin: "2px 0 8px" }}>
+        {resposta.gerado_em && (
+          <span className="etiqueta" style={{ marginRight: 6 }}>
+            Resultado gerado em {resposta.gerado_em.slice(8, 10)}/{resposta.gerado_em.slice(5, 7)}
+          </span>
+        )}
         {resposta.modo === "ia" ? `Decidido pela IA (${resposta.modelo})` : "Decidido pelo playbook de regras"} em {(resposta.duracao_ms / 1000).toFixed(1).replace(".", ",")} s
+        {resposta.gerado_em && ". Use “Rodar de novo” para rodar ao vivo."}
       </p>
       <ol className="passos">
         {passos.map((p, i) => (

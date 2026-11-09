@@ -2,7 +2,13 @@ import "server-only";
 import casosJson from "./data/casos.json";
 import resumoJson from "./data/resumo.json";
 import transpJson from "./data/transportadoras.json";
-import type { Achado, Caso } from "./tipos";
+import pregeradosJson from "./data/pregerados.json";
+import type { Achado, Caso, RespostaAgente } from "./tipos";
+
+/** Tratativas que a IA já gerou para os primeiros casos da fila (scripts/pregerar.mjs). */
+const pregerados = pregeradosJson as unknown as Record<string, RespostaAgente>;
+export const pregeradoPorId = (id: string): RespostaAgente | undefined => pregerados[id.trim().toUpperCase()];
+export const idsPregerados = Object.keys(pregerados);
 
 export const casos = casosJson as unknown as Caso[];
 export const resumo = resumoJson as unknown as { kpis: Record<string, any>; achados: Achado[] };

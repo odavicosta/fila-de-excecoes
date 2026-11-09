@@ -1,0 +1,2625 @@
+{
+ "GB7022148": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7022148"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 10/08 (vazamento): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7022148",
+     "customer_id": "CL307308",
+     "marca": "Ápice",
+     "produto": "APC-1067 Cond Ativ Anti-Frizz Cch Nutritivo 1000Ml",
+     "valor": 53.31,
+     "qtd_itens": 1,
+     "brinde_no_pedido": true,
+     "tipo_excecao": "Vazamento",
+     "status": "em_analise",
+     "data_pedido": "2026-08-01",
+     "data_prometida_ao_cliente": "2026-08-06",
+     "data_prometida_correta_pelo_sla": "2026-08-07",
+     "data_entrega": "2026-08-10",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 38,
+     "transportadora": "Carga Norte",
+     "destino": "São Paulo/SP",
+     "producao": {
+      "maquina": null,
+      "turno": "manhã",
+      "cd": "CD2",
+      "lote": "L2607-B"
+     },
+     "data_abertura_excecao": "2026-08-10",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL307308"
+    },
+    "resultado": {
+     "customer_id": "CL307308",
+     "n_pedidos": 32,
+     "receita_acumulada": 11354.01,
+     "cliente_desde": "2026-06-22",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 3020.17,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7022148",
+       "tipo": "Vazamento",
+       "status": "em_analise"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7022148"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "Lote L2607-B do Condicionador Anti-Frizz 1000ml (Ápice) está vazando",
+       "evidencia": "77 dos 111 vazamentos (69%) são do lote L2607-B, praticamente todos do mesmo produto. Os demais lotes têm em média 3 vazamentos.",
+       "correcao_de_processo": "Bloquear o lote no estoque, abrir não-conformidade com o fornecedor e reenviar de outro lote.",
+       "outros_casos_abertos_iguais": 76
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7022148"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 1229.39,
+     "perda_esperada_se_esperar_5_dias_uteis": 1229.39,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 26.09,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 11.354: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 53.31,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio",
+     "acoes_complementares": [],
+     "alerta_processo": "Bloquear lote L2607-B, abrir não-conformidade com fornecedor e reenviar de outro lote",
+     "chamado_interno": "Reenviar pedido GB7022148, SKU APC-1067, lote L2607-B, destino São Paulo/SP. Bloquear lote, abrir não-conformidade com fornecedor.",
+     "justificativa": "O pedido chegou com vazamento e há 38 dias sem solução. O cliente tem alta receita acumulada e a probabilidade de cancelamento é 40%. Reenviar custa apenas 26,09 (CMV 24% + frete) e evita perda de cliente. O lote L2607-B é recorrente, então precisamos bloquear e abrir não-conformidade.",
+     "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7022148 chegou com vazamento. Vamos reenviar um novo produto para você. Agradecemos a paciência e pedimos desculpas pelo transtorno.",
+     "order_id": "GB7022148"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 26.09
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7022148",
+   "acao": "reenvio",
+   "acao_titulo": "Reenviar o pedido",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 11.354: uma pessoa aprova.",
+   "custo_estimado": 26.09,
+   "perda_evitada": 1229.39,
+   "justificativa": "O pedido chegou com vazamento e há 38 dias sem solução. O cliente tem alta receita acumulada e a probabilidade de cancelamento é 40%. Reenviar custa apenas 26,09 (CMV 24% + frete) e evita perda de cliente. O lote L2607-B é recorrente, então precisamos bloquear e abrir não-conformidade.",
+   "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7022148 chegou com vazamento. Vamos reenviar um novo produto para você. Agradecemos a paciência e pedimos desculpas pelo transtorno.",
+   "chamado_interno": "Reenviar pedido GB7022148, SKU APC-1067, lote L2607-B, destino São Paulo/SP. Bloquear lote, abrir não-conformidade com fornecedor.",
+   "alerta_processo": "Bloquear lote L2607-B, abrir não-conformidade com fornecedor e reenviar de outro lote"
+  },
+  "duracao_ms": 6327,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:51:18.127Z"
+ },
+ "GB7004923": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7004923"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 10/09 (item faltante): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7004923",
+     "customer_id": "CL310647",
+     "marca": "Ápice",
+     "produto": "APC-1033 Cond Msc Ph Control 280 Gr",
+     "valor": 86.89,
+     "qtd_itens": 2,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Item faltante",
+     "status": "aguardando_transportadora",
+     "data_pedido": "2026-09-05",
+     "data_prometida_ao_cliente": "2026-09-09",
+     "data_prometida_correta_pelo_sla": "2026-09-11",
+     "data_entrega": "2026-09-10",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 15,
+     "transportadora": "Veloz Log",
+     "destino": "Vila Velha/ES",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-09-11",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL310647"
+    },
+    "resultado": {
+     "customer_id": "CL310647",
+     "n_pedidos": 37,
+     "receita_acumulada": 6240.3,
+     "cliente_desde": "2025-09-15",
+     "contatos_atendimento_12m": 1,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 1594.4,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7004923",
+       "tipo": "Item faltante",
+       "status": "aguardando_transportadora"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7004923"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+       "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. 75% desses pedidos tinham brinde de campanha.",
+       "correcao_de_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+       "outros_casos_abertos_iguais": 209
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7004923"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 672.51,
+     "perda_esperada_se_esperar_5_dias_uteis": 672.51,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio_item_faltante",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio_item_faltante",
+       "descricao": "Enviar o item que faltou",
+       "custo": 24.43,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 6.240: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 86.89,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio_item_faltante",
+     "acoes_complementares": [],
+     "alerta_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+     "chamado_interno": "",
+     "justificativa": "O pedido chegou com item faltante, 15 dias úteis sem solução, risco de cancelamento 40% e perda esperada de R$ 672,51. A opção de reenvio do item faltante tem custo de R$ 24,43, bem abaixo do limite de aprovação e mantém a probabilidade de recompra alta (70%).",
+     "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7004923 chegou com item faltante. Estamos enviando o item que faltou e pedimos desculpas pelo transtorno.",
+     "order_id": "GB7004923"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 24.43
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7004923",
+   "acao": "reenvio_item_faltante",
+   "acao_titulo": "Enviar o item que faltou",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 6.240: uma pessoa aprova.",
+   "custo_estimado": 24.43,
+   "perda_evitada": 672.51,
+   "justificativa": "O pedido chegou com item faltante, 15 dias úteis sem solução, risco de cancelamento 40% e perda esperada de R$ 672,51. A opção de reenvio do item faltante tem custo de R$ 24,43, bem abaixo do limite de aprovação e mantém a probabilidade de recompra alta (70%).",
+   "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7004923 chegou com item faltante. Estamos enviando o item que faltou e pedimos desculpas pelo transtorno.",
+   "chamado_interno": "Para o CD: enviar o item que faltou no pedido GB7004923.",
+   "alerta_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada."
+  },
+  "duracao_ms": 32314,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:52:25.898Z"
+ },
+ "GB7022496": {
+  "modo": "ia",
+  "modelo": "qwen/qwen3.8-27b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7022496"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7022496",
+     "customer_id": "CL308638",
+     "marca": "Rituária",
+     "produto": "RTU-1011 Formula 4 Mag 180 Caps",
+     "valor": 560.59,
+     "qtd_itens": 5,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Atraso na entrega",
+     "status": "em_analise",
+     "data_pedido": "2026-09-13",
+     "data_prometida_ao_cliente": "2026-09-17",
+     "data_prometida_correta_pelo_sla": "2026-09-17",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 9,
+     "atraso_dias_uteis_vs_sla_contratado": 9,
+     "transportadora": "Rota Express",
+     "destino": "Campinas/SP",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-09-18",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL308638"
+    },
+    "resultado": {
+     "customer_id": "CL308638",
+     "n_pedidos": 5,
+     "receita_acumulada": 2802.95,
+     "cliente_desde": "2025-06-03",
+     "contatos_atendimento_12m": 1,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 562.27,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7022496",
+       "tipo": "Atraso na entrega",
+       "status": "em_analise"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7022496"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7022496"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.22,
+     "perda_esperada_se_resolver_hoje": 247.03,
+     "perda_esperada_se_esperar_5_dias_uteis": 449.14,
+     "acao_padrao_do_playbook": {
+      "acao": "cobrar_transportadora",
+      "complementares": [
+       "contato_proativo"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "cobrar_transportadora",
+       "descricao": "Cobrar a transportadora",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "contato_proativo",
+       "descricao": "Avisar o cliente com nova previsão",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "tratar_como_extravio",
+       "descricao": "Tratar como extravio e reenviar",
+       "custo": 146.58,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 2.803: uma pessoa aprova."
+      },
+      {
+       "acao": "desculpas_cupom",
+       "descricao": "Pedir desculpas com cupom",
+       "custo": 56.06,
+       "executor": "agente",
+       "motivo_alcada": "Cupom de desculpas padrão (10%): o agente executa sozinho."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 560.59,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: modelo recusou a chamada. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_transportadora",
+    "argumentos": {
+     "transportadora": "Rota Express",
+     "uf": "SP"
+    },
+    "resultado": {
+     "transportadora": "Rota Express",
+     "uf": "SP",
+     "sla_contratado_dias_uteis": 3,
+     "frete_medio": 12.04,
+     "excecoes_dela_fora do Nordeste": 194,
+     "parcela_atraso_ou_rastreio_parado_fora do Nordeste": 0.17,
+     "parcela_atraso_ou_rastreio_parado_outras_transportadoras": 0.181,
+     "parcela_avaria": 0.024,
+     "alternativas_mesma_uf": [
+      {
+       "transportadora": "Veloz Log",
+       "sla": 3,
+       "frete": 14
+      },
+      {
+       "transportadora": "Carga Norte",
+       "sla": 4,
+       "frete": 13.3
+      },
+      {
+       "transportadora": "Entrega Já",
+       "sla": 3,
+       "frete": 16.1
+      },
+      {
+       "transportadora": "Postal Nacional",
+       "sla": 5,
+       "frete": 12.6
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "cobrar_transportadora",
+     "acoes_complementares": [
+      "contato_proativo"
+     ],
+     "justificativa": "Atraso de 9 dias úteis sobre o prazo prometido (17/09), o que coloca a chance de cancelamento em 22% e a perda esperada em R$ 247,03 hoje, subindo para R$ 449,14 se esperarmos 5 dias úteis. Cliente de alto valor (receita acumulada de R$ 2.802,95, 5 pedidos, recompra de 70%), então resolver rápido preserva a margem futura de R$ 562,27. A Rota Express tem parcela de atraso/rastreio parado de 17% em SP, levemente abaixo da média das demais (18,1%), então a causa é pontual e a cobrança à transportadora (custo zero) é a ação padrão mais eficaz, com contato proativo ao cliente para reduzir a chance de cancelamento.",
+     "mensagem_cliente": "Oi! Aqui é do time Rituária. Seu pedido GB7022496 está com atraso na entrega e já cobramos a transportadora para agilizar. Assim que tivermos uma previsão concreta, te avisamos por aqui.",
+     "order_id": "GB7022496"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "agente",
+     "custo_estimado": 0
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7022496",
+   "acao": "cobrar_transportadora",
+   "acao_titulo": "Cobrar a transportadora",
+   "acoes_complementares": [
+    "contato_proativo"
+   ],
+   "executor": "agente",
+   "motivo_alcada": "Ação sem custo: o agente executa sozinho.",
+   "custo_estimado": 0,
+   "perda_evitada": 449.14,
+   "justificativa": "Atraso de 9 dias úteis sobre o prazo prometido (17/09), o que coloca a chance de cancelamento em 22% e a perda esperada em R$ 247,03 hoje, subindo para R$ 449,14 se esperarmos 5 dias úteis. Cliente de alto valor (receita acumulada de R$ 2.802,95, 5 pedidos, recompra de 70%), então resolver rápido preserva a margem futura de R$ 562,27. A Rota Express tem parcela de atraso/rastreio parado de 17% em SP, levemente abaixo da média das demais (18,1%), então a causa é pontual e a cobrança à transportadora (custo zero) é a ação padrão mais eficaz, com contato proativo ao cliente para reduzir a chance de cancelamento.",
+   "mensagem_cliente": "Oi! Aqui é do time Rituária. Seu pedido GB7022496 está com atraso na entrega e já cobramos a transportadora para agilizar. Assim que tivermos uma previsão concreta, te avisamos por aqui.",
+   "chamado_interno": "Para Rota Express: pedido GB7022496, destino Campinas/SP, prazo contratado de 3 dias úteis vencido em 17/09/26. Pedimos posição em 24h.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 9632,
+  "espera_s": 17,
+  "gerado_em": "2026-11-09T18:52:59.054Z"
+ },
+ "GB7005943": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7005943"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7005943",
+     "customer_id": "CL308540",
+     "marca": "Rituária",
+     "produto": "RTU-1044 Formula Brain + 60 Caps",
+     "valor": 110.34,
+     "qtd_itens": 2,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Atraso na entrega",
+     "status": "aberta",
+     "data_pedido": "2026-09-20",
+     "data_prometida_ao_cliente": "2026-09-27",
+     "data_prometida_correta_pelo_sla": "2026-09-29",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 3,
+     "atraso_dias_uteis_vs_sla_contratado": 1,
+     "transportadora": "Rota Express",
+     "destino": "Feira de Santana/BA",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2605-C"
+     },
+     "data_abertura_excecao": "2026-09-30",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL308540"
+    },
+    "resultado": {
+     "customer_id": "CL308540",
+     "n_pedidos": 34,
+     "receita_acumulada": 6736.75,
+     "cliente_desde": "2026-07-24",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 1791.98,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7005943",
+       "tipo": "Atraso na entrega",
+       "status": "aberta"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7005943"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "Rota Express no Nordeste degradou a partir de setembro",
+       "evidencia": "396 atrasos e rastreios parados vêm da Rota Express em estados do Nordeste. 83% das exceções da Rota no NE são atraso ou rastreio parado, contra 17% nas outras transportadoras na mesma região. O volume salta na semana de 31/08 (semana 36) e se mantém.",
+       "correcao_de_processo": "Acionar a Rota Express com os dados (multa contratual / plano de ação) e migrar o volume do NE para a Entrega Já (SLA 5 du vs 6 du da Rota) enquanto o problema durar.",
+       "outros_casos_abertos_iguais": 395
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7005943"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.1,
+     "perda_esperada_se_resolver_hoje": 190.23,
+     "perda_esperada_se_esperar_5_dias_uteis": 418.51,
+     "acao_padrao_do_playbook": {
+      "acao": "cobrar_transportadora",
+      "complementares": [
+       "contato_proativo"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "cobrar_transportadora",
+       "descricao": "Cobrar a transportadora",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "contato_proativo",
+       "descricao": "Avisar o cliente com nova previsão",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "tratar_como_extravio",
+       "descricao": "Tratar como extravio e reenviar",
+       "custo": 46.26,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 6.737: uma pessoa aprova."
+      },
+      {
+       "acao": "desculpas_cupom",
+       "descricao": "Pedir desculpas com cupom",
+       "custo": 11.03,
+       "executor": "agente",
+       "motivo_alcada": "Cupom de desculpas padrão (10%): o agente executa sozinho."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 110.34,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 4s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "cobrar_transportadora",
+     "acoes_complementares": [
+      "contato_proativo"
+     ],
+     "alerta_processo": "Migrar volume do NE para Entrega Já enquanto o problema durar",
+     "chamado_interno": "Pedido GB7005943, SKU RTU-1044, lote L2605-C, prazo 3 dias de atraso. Solicitar multa e plano de ação da Rota Express.",
+     "justificativa": "O pedido está atrasado 3 dias úteis, com risco de cancelamento de 10% e perda esperada de R$190,23 se resolvido hoje. A causa recorrente é a Rota Express no Nordeste, com 396 casos semelhantes. Cobrar a transportadora evita custo de reenvio e mantém a confiança do cliente de alto valor.",
+     "mensagem_cliente": "Oi! Aqui é do time Rituária. O pedido GB7005943 está atrasado 3 dias. Estamos cobrando a transportadora e mantendo você informado. Obrigado pela paciência!",
+     "order_id": "GB7005943"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "agente",
+     "custo_estimado": 0
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7005943",
+   "acao": "cobrar_transportadora",
+   "acao_titulo": "Cobrar a transportadora",
+   "acoes_complementares": [
+    "contato_proativo"
+   ],
+   "executor": "agente",
+   "motivo_alcada": "Ação sem custo: o agente executa sozinho.",
+   "custo_estimado": 0,
+   "perda_evitada": 418.51,
+   "justificativa": "O pedido está atrasado 3 dias úteis, com risco de cancelamento de 10% e perda esperada de R$190,23 se resolvido hoje. A causa recorrente é a Rota Express no Nordeste, com 396 casos semelhantes. Cobrar a transportadora evita custo de reenvio e mantém a confiança do cliente de alto valor.",
+   "mensagem_cliente": "Oi! Aqui é do time Rituária. O pedido GB7005943 está atrasado 3 dias. Estamos cobrando a transportadora e mantendo você informado. Obrigado pela paciência!",
+   "chamado_interno": "Pedido GB7005943, SKU RTU-1044, lote L2605-C, prazo 3 dias de atraso. Solicitar multa e plano de ação da Rota Express.",
+   "alerta_processo": "Migrar volume do NE para Entrega Já enquanto o problema durar"
+  },
+  "duracao_ms": 9026,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:54:00.298Z"
+ },
+ "GB7017364": {
+  "modo": "ia",
+  "modelo": "qwen/qwen3.8-27b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7017364"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 29/09 (item faltante): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7017364",
+     "customer_id": "CL301848",
+     "marca": "Barbour's",
+     "produto": "BBS-1172 Deo Hid Corp Essential Bd Crm My Sweet Delight 230G",
+     "valor": 92.35,
+     "qtd_itens": 3,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Item faltante",
+     "status": "em_analise",
+     "data_pedido": "2026-09-19",
+     "data_prometida_ao_cliente": "2026-09-28",
+     "data_prometida_correta_pelo_sla": "2026-10-01",
+     "data_entrega": "2026-09-29",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 2,
+     "transportadora": "Rota Express",
+     "destino": "Ananindeua/PA",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2606-B"
+     },
+     "data_abertura_excecao": "2026-09-30",
+     "registro_duplicado_na_fila": true,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL301848"
+    },
+    "resultado": {
+     "customer_id": "CL301848",
+     "n_pedidos": 34,
+     "receita_acumulada": 5064.87,
+     "cliente_desde": "2026-05-17",
+     "contatos_atendimento_12m": 7,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 1347.26,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7017364",
+       "tipo": "Item faltante",
+       "status": "em_analise"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7017364"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+       "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. 75% desses pedidos tinham brinde de campanha.",
+       "correcao_de_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+       "outros_casos_abertos_iguais": 209
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7017364"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.04,
+     "perda_esperada_se_resolver_hoje": 57.58,
+     "perda_esperada_se_esperar_5_dias_uteis": 316.71,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio_item_faltante",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio_item_faltante",
+       "descricao": "Enviar o item que faltou",
+       "custo": 32.33,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 5.065: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 92.35,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio_item_faltante",
+     "alerta_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada; 210 dos 278 itens faltantes (76%) vêm desse turno e 75% desses pedidos tinham brinde de campanha.",
+     "chamado_interno": "",
+     "justificativa": "O pedido chegou em 29/09 com item faltante e está há 2 dias úteis sem solução, com chance de cancelamento de 4% hoje e perda esperada de R$ 57,58 se resolvido agora, contra R$ 316,71 se esperar 5 dias úteis. O cliente é de alto valor (R$ 5.065 acumulados, 70% de recompra, R$ 1.347 em risco), então o reenvio do item faltante (custo R$ 32,33) preserva a relação e é mais barato que o reembolso (R$ 92,35). O caso integra um problema recorrente do turno da noite do CD2, que responde por 76% dos itens faltantes.",
+     "mensagem_cliente": "Oi! Aqui é do time Barbour's. Seu pedido GB7017364 chegou com um item faltante e já estamos providenciando o envio do que faltou, sem custo para você. Pedimos desculpas pelo transtorno e seguimos de olho até você receber tudo certinho.",
+     "order_id": "GB7017364"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 32.33
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7017364",
+   "acao": "reenvio_item_faltante",
+   "acao_titulo": "Enviar o item que faltou",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 5.065: uma pessoa aprova.",
+   "custo_estimado": 32.33,
+   "perda_evitada": 316.71,
+   "justificativa": "O pedido chegou em 29/09 com item faltante e está há 2 dias úteis sem solução, com chance de cancelamento de 4% hoje e perda esperada de R$ 57,58 se resolvido agora, contra R$ 316,71 se esperar 5 dias úteis. O cliente é de alto valor (R$ 5.065 acumulados, 70% de recompra, R$ 1.347 em risco), então o reenvio do item faltante (custo R$ 32,33) preserva a relação e é mais barato que o reembolso (R$ 92,35). O caso integra um problema recorrente do turno da noite do CD2, que responde por 76% dos itens faltantes.",
+   "mensagem_cliente": "Oi! Aqui é do time Barbour's. Seu pedido GB7017364 chegou com um item faltante e já estamos providenciando o envio do que faltou, sem custo para você. Pedimos desculpas pelo transtorno e seguimos de olho até você receber tudo certinho.",
+   "chamado_interno": "Para o CD: enviar o item que faltou no pedido GB7017364.",
+   "alerta_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada; 210 dos 278 itens faltantes (76%) vêm desse turno e 75% desses pedidos tinham brinde de campanha."
+  },
+  "duracao_ms": 6324,
+  "espera_s": 9,
+  "gerado_em": "2026-11-09T18:54:45.099Z"
+ },
+ "GB7008832": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7008832"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 24/08 (avaria no transporte): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7008832",
+     "customer_id": "CL305117",
+     "marca": "Lescent",
+     "produto": "LSC-1048 Deo Colonia No 6 - 100Ml",
+     "valor": 382.7,
+     "qtd_itens": 3,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Avaria no transporte",
+     "status": "aberta",
+     "data_pedido": "2026-08-12",
+     "data_prometida_ao_cliente": "2026-08-20",
+     "data_prometida_correta_pelo_sla": "2026-08-24",
+     "data_entrega": "2026-08-24",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 28,
+     "transportadora": "Carga Norte",
+     "destino": "Vitória da Conquista/BA",
+     "producao": {
+      "maquina": null,
+      "turno": "manhã",
+      "cd": "CD1",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-08-25",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7008832"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "Carga Norte avaria 5x mais que as outras transportadoras",
+       "evidencia": "98 das 186 avarias são da Carga Norte, que tem só 17% das exceções. Avaria é 29% das exceções dela contra 5% nas demais.",
+       "correcao_de_processo": "Pedir ressarcimento das avarias à Carga Norte e revisar embalagem/manuseio; se não melhorar, reduzir o volume com ela.",
+       "outros_casos_abertos_iguais": 97
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7008832"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 514.07,
+     "perda_esperada_se_esperar_5_dias_uteis": 514.07,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio",
+      "complementares": [
+       "cobrar_transportadora"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 113.7,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 4.043: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 382.7,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      },
+      {
+       "acao": "cobrar_transportadora",
+       "descricao": "Cobrar a transportadora",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio",
+     "acoes_complementares": [
+      "cobrar_transportadora"
+     ],
+     "alerta_processo": "Pedir ressarcimento das avarias à Carga Norte e revisar embalagem/manuseio; se não melhorar, reduzir o volume com ela.",
+     "chamado_interno": "",
+     "justificativa": "O pedido chegou com avaria e está 28 dias sem solução, aumentando a chance de cancelamento em 40%. Reenviar custa R$113,70 (CMV+frete) e evita a perda de R$514,07 esperada. Cobrar a transportadora cobre a responsabilidade sem custo adicional.",
+     "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7008832 chegou com avaria. Estamos reenviando o produto e cobrando a transportadora pelo ocorrido. Agradecemos a compreensão.",
+     "order_id": "GB7008832"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 113.7
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7008832",
+   "acao": "reenvio",
+   "acao_titulo": "Reenviar o pedido",
+   "acoes_complementares": [
+    "cobrar_transportadora"
+   ],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 4.043: uma pessoa aprova.",
+   "custo_estimado": 113.7,
+   "perda_evitada": 514.07,
+   "justificativa": "O pedido chegou com avaria e está 28 dias sem solução, aumentando a chance de cancelamento em 40%. Reenviar custa R$113,70 (CMV+frete) e evita a perda de R$514,07 esperada. Cobrar a transportadora cobre a responsabilidade sem custo adicional.",
+   "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7008832 chegou com avaria. Estamos reenviando o produto e cobrando a transportadora pelo ocorrido. Agradecemos a compreensão.",
+   "chamado_interno": "Para Carga Norte: pedido GB7008832, destino Vitória da Conquista/BA, prazo contratado de 7 dias úteis vencido em 24/08/26. Pedimos posição em 24h e ressarcimento do valor da mercadoria.\nPara o CD: separar novamente o LSC-1048 (Deo Colonia No 6 - 100Ml) para o pedido GB7008832.",
+   "alerta_processo": "Pedir ressarcimento das avarias à Carga Norte e revisar embalagem/manuseio; se não melhorar, reduzir o volume com ela."
+  },
+  "duracao_ms": 2492,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:55:31.300Z"
+ },
+ "GB7013289": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-120b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7013289"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 02/09 (item faltante): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7013289",
+     "customer_id": "CL310402",
+     "marca": "Ápice",
+     "produto": "APC-1109 Shampoo Nutri Waves 1000Ml",
+     "valor": 146.14,
+     "qtd_itens": 2,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Item faltante",
+     "status": "aberta",
+     "data_pedido": "2026-08-23",
+     "data_prometida_ao_cliente": "2026-08-29",
+     "data_prometida_correta_pelo_sla": "2026-08-31",
+     "data_entrega": "2026-09-02",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 22,
+     "transportadora": "Postal Nacional",
+     "destino": "Niterói/RJ",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2605-B"
+     },
+     "data_abertura_excecao": "2026-09-03",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL310402"
+    },
+    "resultado": {
+     "customer_id": "CL310402",
+     "n_pedidos": 26,
+     "receita_acumulada": 4170.45,
+     "cliente_desde": "2025-12-08",
+     "contatos_atendimento_12m": 1,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 1109.34,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7013289",
+       "tipo": "Item faltante",
+       "status": "aberta"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_transportadora",
+    "argumentos": {
+     "transportadora": "Postal Nacional",
+     "uf": "RJ"
+    },
+    "resultado": {
+     "transportadora": "Postal Nacional",
+     "uf": "RJ",
+     "sla_contratado_dias_uteis": 5,
+     "frete_medio": 12.6,
+     "excecoes_dela_fora do Nordeste": 228,
+     "parcela_atraso_ou_rastreio_parado_fora do Nordeste": 0.189,
+     "parcela_atraso_ou_rastreio_parado_outras_transportadoras": 0.177,
+     "parcela_avaria": 0.093,
+     "alternativas_mesma_uf": [
+      {
+       "transportadora": "Rota Express",
+       "sla": 3,
+       "frete": 12.04
+      },
+      {
+       "transportadora": "Veloz Log",
+       "sla": 3,
+       "frete": 14
+      },
+      {
+       "transportadora": "Carga Norte",
+       "sla": 4,
+       "frete": 13.3
+      },
+      {
+       "transportadora": "Entrega Já",
+       "sla": 3,
+       "frete": 16.1
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7013289"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 502.19,
+     "perda_esperada_se_esperar_5_dias_uteis": 502.19,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio_item_faltante",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio_item_faltante",
+       "descricao": "Enviar o item que faltou",
+       "custo": 30.14,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 4.170: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 146.14,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "pensamento",
+    "texto": "**justificativa:** O pedido chegou com item faltante há 22 dias úteis sem solução. O cliente tem receita acumulada de R$ 4 170, 70 % de chance de recompra, e a perda esperada se o caso não for resolvido hoje é de R$ 502,19. Entre as opções, o reenvio do item faltante custa apenas R$ 30,14, enquanto o reembolso custaria R$ 146,14, gerando maior perda e risco de churn. Assim, a ação mais econômica e que preserva a chance de recompra é reenviar o item faltante.\n\n**mensagem_cliente:** Oi! Aqui é do time Ápice. O pedido GB7013289 chegou com item faltante. Vamos enviar o item que falta imediatamente.\n\n**registrar_tratativa**"
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio_item_faltante",
+     "acoes_complementares": [],
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "O pedido chegou com item faltante há 22 dias úteis sem solução. O cliente tem receita acumulada de R$ 4.170, 70% de chance de recompra, e a perda esperada se o caso não for resolvido hoje é de R$ 502,19. Entre as opções, o reenvio do item faltante custa apenas R$ 30,14, enquanto o reembolso custaria R$ 146,14, gerando maior perda e risco de churn. Assim, a ação mais econômica e que preserva a chance de recompra é reenviar o item faltante.",
+     "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7013289 chegou com item faltante. Vamos enviar o item que falta imediatamente.",
+     "order_id": "GB7013289"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 30.14
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7013289",
+   "acao": "reenvio_item_faltante",
+   "acao_titulo": "Enviar o item que faltou",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 4.170: uma pessoa aprova.",
+   "custo_estimado": 30.14,
+   "perda_evitada": 502.19,
+   "justificativa": "O pedido chegou com item faltante há 22 dias úteis sem solução. O cliente tem receita acumulada de R$ 4.170, 70% de chance de recompra, e a perda esperada se o caso não for resolvido hoje é de R$ 502,19. Entre as opções, o reenvio do item faltante custa apenas R$ 30,14, enquanto o reembolso custaria R$ 146,14, gerando maior perda e risco de churn. Assim, a ação mais econômica e que preserva a chance de recompra é reenviar o item faltante.",
+   "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7013289 chegou com item faltante. Vamos enviar o item que falta imediatamente.",
+   "chamado_interno": "Para o CD: enviar o item que faltou no pedido GB7013289.",
+   "alerta_processo": "Mais um item faltante do turno da noite do CD2. Reforçar a conferência nesse turno."
+  },
+  "duracao_ms": 5344,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:55:37.325Z"
+ },
+ "GB7004863": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7004863"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 15/09 (vazamento): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7004863",
+     "customer_id": "CL303367",
+     "marca": "Ápice",
+     "produto": "APC-1067 Cond Ativ Anti-Frizz Cch Nutritivo 1000Ml",
+     "valor": 104.29,
+     "qtd_itens": 2,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Vazamento",
+     "status": "aberta",
+     "data_pedido": "2026-08-31",
+     "data_prometida_ao_cliente": "2026-09-08",
+     "data_prometida_correta_pelo_sla": "2026-09-11",
+     "data_entrega": "2026-09-15",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 16,
+     "transportadora": "Carga Norte",
+     "destino": "Feira de Santana/BA",
+     "producao": {
+      "maquina": null,
+      "turno": "tarde",
+      "cd": "CD1",
+      "lote": "L2607-B"
+     },
+     "data_abertura_excecao": "2026-09-15",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL303367"
+    },
+    "resultado": {
+     "customer_id": "CL303367",
+     "n_pedidos": 34,
+     "receita_acumulada": 3873.45,
+     "cliente_desde": "2025-12-09",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 1030.34,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7004863",
+       "tipo": "Vazamento",
+       "status": "aberta"
+      },
+      {
+       "order_id": "GC7020507",
+       "tipo": "Atraso na entrega",
+       "status": "aguardando_transportadora"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7004863"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "Lote L2607-B do Condicionador Anti-Frizz 1000ml (Ápice) está vazando",
+       "evidencia": "77 dos 111 vazamentos (69%) são do lote L2607-B, praticamente todos do mesmo produto. Os demais lotes têm em média 3 vazamentos.",
+       "correcao_de_processo": "Bloquear o lote no estoque, abrir não-conformidade com o fornecedor e reenviar de outro lote.",
+       "outros_casos_abertos_iguais": 76
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7004863"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 453.85,
+     "perda_esperada_se_esperar_5_dias_uteis": 453.85,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 46.88,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 3.873: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 104.29,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 5s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio",
+     "alerta_processo": "Bloquear lote L2607-B, abrir não-conformidade com fornecedor e reenviar de outro lote",
+     "chamado_interno": "Pedido GB7004863, SKU APC-1067, lote L2607-B, prazo de entrega 15/09, problema vazamento. Necessita bloqueio de estoque e reenvio de lote alternativo.",
+     "justificativa": "O pedido chegou com vazamento, 16 dias úteis sem solução e alta probabilidade de cancelamento (40%). O cliente tem receita acumulada de R$3.873, alta recompra. Reenvio custa R$46,88, bem abaixo do limite de R$60, evitando perda de cliente e mantendo margem.",
+     "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7004863 chegou com vazamento. Estamos reenviando um novo produto para você. Agradecemos a paciência.",
+     "order_id": "GB7004863"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 46.88
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7004863",
+   "acao": "reenvio",
+   "acao_titulo": "Reenviar o pedido",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 3.873: uma pessoa aprova.",
+   "custo_estimado": 46.88,
+   "perda_evitada": 453.85,
+   "justificativa": "O pedido chegou com vazamento, 16 dias úteis sem solução e alta probabilidade de cancelamento (40%). O cliente tem receita acumulada de R$3.873, alta recompra. Reenvio custa R$46,88, bem abaixo do limite de R$60, evitando perda de cliente e mantendo margem.",
+   "mensagem_cliente": "Oi! Aqui é do time Ápice. O pedido GB7004863 chegou com vazamento. Estamos reenviando um novo produto para você. Agradecemos a paciência.",
+   "chamado_interno": "Pedido GB7004863, SKU APC-1067, lote L2607-B, prazo de entrega 15/09, problema vazamento. Necessita bloqueio de estoque e reenvio de lote alternativo.",
+   "alerta_processo": "Bloquear lote L2607-B, abrir não-conformidade com fornecedor e reenviar de outro lote"
+  },
+  "duracao_ms": 18917,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:55:58.383Z"
+ },
+ "GB7014995": {
+  "modo": "ia",
+  "modelo": "qwen/qwen3.8-27b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7014995"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7014995",
+     "customer_id": "CL300847",
+     "marca": "Barbour's",
+     "produto": "BBS-1070 Deo Bd Spl Fine Touch 200Ml",
+     "valor": 70.86,
+     "qtd_itens": 2,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Devolvido pela transportadora",
+     "status": "aguardando_transportadora",
+     "data_pedido": "2026-09-11",
+     "data_prometida_ao_cliente": "2026-09-18",
+     "data_prometida_correta_pelo_sla": "2026-09-22",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 8,
+     "atraso_dias_uteis_vs_sla_contratado": 6,
+     "transportadora": "Carga Norte",
+     "destino": "Goiânia/GO",
+     "producao": {
+      "maquina": null,
+      "turno": "tarde",
+      "cd": "CD2",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-09-19",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 2s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL300847"
+    },
+    "resultado": {
+     "customer_id": "CL300847",
+     "n_pedidos": 15,
+     "receita_acumulada": 2593.55,
+     "cliente_desde": "2025-10-04",
+     "contatos_atendimento_12m": 4,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 689.88,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7014995",
+       "tipo": "Devolvido pela transportadora",
+       "status": "aguardando_transportadora"
+      },
+      {
+       "order_id": "GB7014733",
+       "tipo": "Vazamento",
+       "status": "em_analise"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 3s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7014995"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7014995"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.22,
+     "perda_esperada_se_resolver_hoje": 167.36,
+     "perda_esperada_se_esperar_5_dias_uteis": 304.3,
+     "acao_padrao_do_playbook": {
+      "acao": "confirmar_endereco",
+      "complementares": [
+       "reenvio"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "confirmar_endereco",
+       "descricao": "Confirmar o endereço com o cliente",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 35.06,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 2.594: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 70.86,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_transportadora",
+    "argumentos": {
+     "transportadora": "Carga Norte",
+     "uf": "GO"
+    },
+    "resultado": {
+     "transportadora": "Carga Norte",
+     "uf": "GO",
+     "sla_contratado_dias_uteis": 6,
+     "frete_medio": 18.05,
+     "excecoes_dela_fora do Nordeste": 229,
+     "parcela_atraso_ou_rastreio_parado_fora do Nordeste": 0.148,
+     "parcela_atraso_ou_rastreio_parado_outras_transportadoras": 0.186,
+     "parcela_avaria": 0.288,
+     "alternativas_mesma_uf": [
+      {
+       "transportadora": "Rota Express",
+       "sla": 5,
+       "frete": 16.34
+      },
+      {
+       "transportadora": "Veloz Log",
+       "sla": 5,
+       "frete": 19
+      },
+      {
+       "transportadora": "Entrega Já",
+       "sla": 4,
+       "frete": 21.85
+      },
+      {
+       "transportadora": "Postal Nacional",
+       "sla": 7,
+       "frete": 17.1
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "confirmar_endereco",
+     "acoes_complementares": [
+      "reenvio"
+     ],
+     "justificativa": "Pedido devolvido pela Carga Norte com 8 dias úteis de atraso sobre o prazo prometido (chance de cancelamento de 22% hoje, subindo a 40% se passar de 10 dias). Cliente de alto valor (R$ 2.594 acumulados, 70% de recompra, R$ 689,88 em margem futura em risco), então resolver hoje vale mais: perda esperada de R$ 167,36 agora vs R$ 304,30 se esperar 5 dias úteis. Reenvio custa R$ 35,06 (CMV + frete) contra R$ 70,86 do reembolso, e a Carga Norte tem 28,8% de avaria fora do Nordeste, então vale confirmar o endereço antes de reenviar.",
+     "mensagem_cliente": "Oi! Aqui é do time Barbour's. Seu pedido GB7014995 foi devolvido pela transportadora e ainda não chegou até você. Vamos confirmar seu endereço e reenviar o mais rápido possível.",
+     "order_id": "GB7014995"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 35.06
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7014995",
+   "acao": "confirmar_endereco",
+   "acao_titulo": "Confirmar o endereço com o cliente",
+   "acoes_complementares": [
+    "reenvio"
+   ],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 2.594: uma pessoa aprova.",
+   "custo_estimado": 35.06,
+   "perda_evitada": 304.3,
+   "justificativa": "Pedido devolvido pela Carga Norte com 8 dias úteis de atraso sobre o prazo prometido (chance de cancelamento de 22% hoje, subindo a 40% se passar de 10 dias). Cliente de alto valor (R$ 2.594 acumulados, 70% de recompra, R$ 689,88 em margem futura em risco), então resolver hoje vale mais: perda esperada de R$ 167,36 agora vs R$ 304,30 se esperar 5 dias úteis. Reenvio custa R$ 35,06 (CMV + frete) contra R$ 70,86 do reembolso, e a Carga Norte tem 28,8% de avaria fora do Nordeste, então vale confirmar o endereço antes de reenviar.",
+   "mensagem_cliente": "Oi! Aqui é do time Barbour's. Seu pedido GB7014995 foi devolvido pela transportadora e ainda não chegou até você. Vamos confirmar seu endereço e reenviar o mais rápido possível.",
+   "chamado_interno": "Para o CD: separar novamente o BBS-1070 (Deo Bd Spl Fine Touch 200Ml) para o pedido GB7014995.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 12659,
+  "espera_s": 30,
+  "gerado_em": "2026-11-09T18:56:13.476Z"
+ },
+ "GB7003099": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7003099"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7003099",
+     "customer_id": "CL304305",
+     "marca": "Ápice",
+     "produto": "APC-1046 Cond Msc Cch Nutritiva 300G",
+     "valor": 102.65,
+     "qtd_itens": 4,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Endereço divergente",
+     "status": "aberta",
+     "data_pedido": "2026-09-14",
+     "data_prometida_ao_cliente": "2026-09-18",
+     "data_prometida_correta_pelo_sla": "2026-09-18",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 8,
+     "atraso_dias_uteis_vs_sla_contratado": 8,
+     "transportadora": "Entrega Já",
+     "destino": "Contagem/MG",
+     "producao": {
+      "maquina": null,
+      "turno": "manhã",
+      "cd": "CD2",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-09-15",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL304305"
+    },
+    "resultado": {
+     "customer_id": "CL304305",
+     "n_pedidos": 17,
+     "receita_acumulada": 3238.81,
+     "cliente_desde": "2025-05-31",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 645.7,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7003099",
+       "tipo": "Endereço divergente",
+       "status": "aberta"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7003099"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7003099"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.22,
+     "perda_esperada_se_resolver_hoje": 164.64,
+     "perda_esperada_se_esperar_5_dias_uteis": 299.34,
+     "acao_padrao_do_playbook": {
+      "acao": "confirmar_endereco",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "confirmar_endereco",
+       "descricao": "Confirmar o endereço com o cliente",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "lembrete_cliente",
+       "descricao": "Lembrar o cliente do que falta",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "confirmar_endereco",
+     "acoes_complementares": [],
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "O pedido está com atraso de 8 dias úteis e a exceção é endereço divergente. A chance de cancelamento hoje é 22% e a perda esperada se resolver hoje é R$164,64. Confirmar endereço é a ação padrão e não gera custo.",
+     "mensagem_cliente": "Oi! Aqui é do time Ápice. Pedido GB7003099 tem endereço divergente. Precisamos confirmar o endereço para prosseguir com a entrega.",
+     "order_id": "GB7003099"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "agente",
+     "custo_estimado": 0
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7003099",
+   "acao": "confirmar_endereco",
+   "acao_titulo": "Confirmar o endereço com o cliente",
+   "acoes_complementares": [],
+   "executor": "agente",
+   "motivo_alcada": "Ação sem custo: o agente executa sozinho.",
+   "custo_estimado": 0,
+   "perda_evitada": 299.34,
+   "justificativa": "O pedido está com atraso de 8 dias úteis e a exceção é endereço divergente. A chance de cancelamento hoje é 22% e a perda esperada se resolver hoje é R$164,64. Confirmar endereço é a ação padrão e não gera custo.",
+   "mensagem_cliente": "Oi! Aqui é do time Ápice. Pedido GB7003099 tem endereço divergente. Precisamos confirmar o endereço para prosseguir com a entrega.",
+   "chamado_interno": "Sem chamado interno.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 2515,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:56:46.105Z"
+ },
+ "GB7025441": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7025441"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7025441",
+     "customer_id": "CL301610",
+     "marca": "Yenzah",
+     "produto": "YNZ-1028 Condicionador Bonita Por Natureza Cachos Rosa Mosqueta 500Ml",
+     "valor": 24.45,
+     "qtd_itens": 1,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Devolvido pela transportadora",
+     "status": "aguardando_transportadora",
+     "data_pedido": "2026-08-18",
+     "data_prometida_ao_cliente": "2026-08-23",
+     "data_prometida_correta_pelo_sla": "2026-08-25",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 27,
+     "atraso_dias_uteis_vs_sla_contratado": 25,
+     "transportadora": "Veloz Log",
+     "destino": "Pelotas/RS",
+     "producao": {
+      "maquina": null,
+      "turno": "manhã",
+      "cd": "CD2",
+      "lote": "L2606-B"
+     },
+     "data_abertura_excecao": "2026-08-24",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL301610"
+    },
+    "resultado": {
+     "customer_id": "CL301610",
+     "n_pedidos": 36,
+     "receita_acumulada": 6984.67,
+     "cliente_desde": "2024-11-19",
+     "contatos_atendimento_12m": 7,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 997.27,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7025441",
+       "tipo": "Devolvido pela transportadora",
+       "status": "aguardando_transportadora"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7025441"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 6s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7025441"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 408.69,
+     "perda_esperada_se_esperar_5_dias_uteis": 408.69,
+     "acao_padrao_do_playbook": {
+      "acao": "confirmar_endereco",
+      "complementares": [
+       "reenvio"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "confirmar_endereco",
+       "descricao": "Confirmar o endereço com o cliente",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 22.87,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 6.985: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 24.45,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 4s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio",
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "Pedido atrasado 27 dias uteis, risco de cancelamento 40%. Cliente de alto valor com receita acumulada R$6.985, perda esperada R$408,69. Reenvio custa R$22,87 (CMV 24% + frete) e evita perda de cliente.",
+     "mensagem_cliente": "Oi! Aqui é do time Yenzah. O seu pedido GB7025441 foi devolvido pela transportadora e ainda não chegou. Estamos reenviando-o imediatamente para garantir que você receba o produto o quanto antes. Agradecemos a sua paciência.",
+     "order_id": "GB7025441"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 22.87
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7025441",
+   "acao": "reenvio",
+   "acao_titulo": "Reenviar o pedido",
+   "acoes_complementares": [],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 6.985: uma pessoa aprova.",
+   "custo_estimado": 22.87,
+   "perda_evitada": 408.69,
+   "justificativa": "Pedido atrasado 27 dias uteis, risco de cancelamento 40%. Cliente de alto valor com receita acumulada R$6.985, perda esperada R$408,69. Reenvio custa R$22,87 (CMV 24% + frete) e evita perda de cliente.",
+   "mensagem_cliente": "Oi! Aqui é do time Yenzah. O seu pedido GB7025441 foi devolvido pela transportadora e ainda não chegou. Estamos reenviando-o imediatamente para garantir que você receba o produto o quanto antes. Agradecemos a sua paciência.",
+   "chamado_interno": "Para o CD: separar novamente o YNZ-1028 (Condicionador Bonita Por Natureza Cachos Rosa Mosqueta 500Ml) para o pedido GB7025441.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 11753,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:56:58.493Z"
+ },
+ "GB7007514": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-120b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7007514"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7007514",
+     "customer_id": "CL312785",
+     "marca": "Lescent",
+     "produto": "LSC-1092 Deo Colonia No 8 - 25Ml",
+     "valor": 48.13,
+     "qtd_itens": 1,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Extravio",
+     "status": "em_analise",
+     "data_pedido": "2026-09-15",
+     "data_prometida_ao_cliente": "2026-09-19",
+     "data_prometida_correta_pelo_sla": "2026-09-21",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 8,
+     "atraso_dias_uteis_vs_sla_contratado": 7,
+     "transportadora": "Rota Express",
+     "destino": "Santos/SP",
+     "producao": {
+      "maquina": null,
+      "turno": "tarde",
+      "cd": "CD1",
+      "lote": "L2608-B"
+     },
+     "data_abertura_excecao": "2026-09-30",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL312785"
+    },
+    "resultado": {
+     "customer_id": "CL312785",
+     "n_pedidos": 18,
+     "receita_acumulada": 2465.92,
+     "cliente_desde": "2026-07-13",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 655.93,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7007514",
+       "tipo": "Extravio",
+       "status": "em_analise"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 2s."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: modelo recusou a chamada. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7007514"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7007514"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.22,
+     "perda_esperada_se_resolver_hoje": 154.89,
+     "perda_esperada_se_esperar_5_dias_uteis": 281.63,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio",
+      "complementares": [
+       "cobrar_transportadora",
+       "contato_proativo"
+      ]
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio",
+       "descricao": "Reenviar o pedido",
+       "custo": 23.59,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 2.466: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 48.13,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      },
+      {
+       "acao": "cobrar_transportadora",
+       "descricao": "Cobrar a transportadora",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "contato_proativo",
+       "descricao": "Avisar o cliente com nova previsão",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "pensamento",
+    "texto": "**Justificativa:**  \nO pedido GB7007514 está com atraso de 8 dias úteis em relação ao prazo prometido ao cliente (probabilidade de cancelamento = 22 %). O cliente tem receita acumulada de R$ 2.466,93, o que gera 70 % de chance de recompra, mas uma exceção mal resolvida reduz essa taxa pela metade, aumentando o risco de perda de R$ 655,93.  \n\nEntre as opções, o reenvio tem custo de R$ 23,59 (CMV + frete) e reduz a perda esperada para R$ 154,89, enquanto o reembolso custaria R$ 48,13 e aumentaria a chance de churn. Cobrar a transportadora e contato proativo são complementares sem custo e ajudam a pressionar a transportadora.  \n\nPortanto, a melhor tratativa é **reenvio** do pedido, com as ações complementares de **cobrar_transportadora** e **contato_proativo**.\n\n**Mensagem para o cliente:**  \nOi! Aqui é do time Lescent. O pedido GB7007514 sofreu extravio e ainda não chegou. Estamos reenviando o pedido e já acionamos a transportadora para agilizar a entrega.  \n\n**Registrar tratativa**"
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio",
+     "acoes_complementares": [
+      "cobrar_transportadora",
+      "contato_proativo"
+     ],
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "O pedido está com 8 dias úteis de atraso (probabilidade de cancelamento 22%). Cliente de alto valor tem alta chance de recompra, mas exceção mal resolvida corta isso pela metade, gerando risco de perda de R$655,93. Reenvio custa R$23,59 e reduz a perda esperada para R$154,89, sendo a opção mais econômica e que preserva a relação. Cobrar a transportadora e contato proativo são complementares sem custo e ajudam a acelerar a solução.",
+     "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7007514 sofreu extravio e ainda não chegou. Estamos reenviando o pedido e já acionamos a transportadora para agilizar a entrega.",
+     "order_id": "GB7007514"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 23.59
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7007514",
+   "acao": "reenvio",
+   "acao_titulo": "Reenviar o pedido",
+   "acoes_complementares": [
+    "cobrar_transportadora",
+    "contato_proativo"
+   ],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 2.466: uma pessoa aprova.",
+   "custo_estimado": 23.59,
+   "perda_evitada": 281.63,
+   "justificativa": "O pedido está com 8 dias úteis de atraso (probabilidade de cancelamento 22%). Cliente de alto valor tem alta chance de recompra, mas exceção mal resolvida corta isso pela metade, gerando risco de perda de R$655,93. Reenvio custa R$23,59 e reduz a perda esperada para R$154,89, sendo a opção mais econômica e que preserva a relação. Cobrar a transportadora e contato proativo são complementares sem custo e ajudam a acelerar a solução.",
+   "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7007514 sofreu extravio e ainda não chegou. Estamos reenviando o pedido e já acionamos a transportadora para agilizar a entrega.",
+   "chamado_interno": "Para Rota Express: pedido GB7007514, destino Santos/SP, prazo contratado de 3 dias úteis vencido em 21/09/26. Pedimos posição em 24h e ressarcimento do valor da mercadoria.\nPara o CD: separar novamente o LSC-1092 (Deo Colonia No 8 - 25Ml) para o pedido GB7007514.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 6605,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:57:05.688Z"
+ },
+ "GB7004753": {
+  "modo": "ia",
+  "modelo": "qwen/qwen3.8-27b",
+  "passos": [
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7004753"
+    },
+    "resultado": {
+     "situacao_entrega": "entregue com problema em 16/09 (item faltante): o pedido chegou, não está atrasado; o cliente recebeu com defeito ou incompleto e espera a solução",
+     "order_id": "GB7004753",
+     "customer_id": "CL304333",
+     "marca": "Kokeshi",
+     "produto": "KSH-1045 Deo Bd Spl Cheiro De Rica 200Ml",
+     "valor": 46.98,
+     "qtd_itens": 1,
+     "brinde_no_pedido": true,
+     "tipo_excecao": "Item faltante",
+     "status": "aguardando_transportadora",
+     "data_pedido": "2026-09-01",
+     "data_prometida_ao_cliente": "2026-09-12",
+     "data_prometida_correta_pelo_sla": "2026-09-17",
+     "data_entrega": "2026-09-16",
+     "dias_uteis_sem_solucao_desde_o_prazo_prometido": 13,
+     "transportadora": "Postal Nacional",
+     "destino": "Manaus/AM",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD2",
+      "lote": "L2606-A"
+     },
+     "data_abertura_excecao": "2026-09-16",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL304333"
+    },
+    "resultado": {
+     "customer_id": "CL304333",
+     "n_pedidos": 38,
+     "receita_acumulada": 3635.53,
+     "cliente_desde": "2025-10-01",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 967.05,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7004753",
+       "tipo": "Item faltante",
+       "status": "aguardando_transportadora"
+      },
+      {
+       "order_id": "GB7016890",
+       "tipo": "Endereço divergente",
+       "status": "aguardando_transportadora"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7004753"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": true,
+     "achados": [
+      {
+       "problema": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+       "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. 75% desses pedidos tinham brinde de campanha.",
+       "correcao_de_processo": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+       "outros_casos_abertos_iguais": 209
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7004753"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 405.61,
+     "perda_esperada_se_esperar_5_dias_uteis": 405.61,
+     "acao_padrao_do_playbook": {
+      "acao": "reenvio_item_faltante",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "reenvio_item_faltante",
+       "descricao": "Enviar o item que faltou",
+       "custo": 37.38,
+       "executor": "pessoa",
+       "motivo_alcada": "Cliente com receita acumulada de R$ 3.636: uma pessoa aprova."
+      },
+      {
+       "acao": "reembolso",
+       "descricao": "Reembolsar",
+       "custo": 46.98,
+       "executor": "pessoa",
+       "motivo_alcada": "Reembolso sempre passa por uma pessoa."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-120b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "reenvio_item_faltante",
+     "acoes_complementares": [
+      "desculpas_cupom"
+     ],
+     "alerta_processo": "Turno da noite do CD2 esquece itens, quase sempre o brinde: 210 dos 278 itens faltantes (76%) vêm desse turno, e 75% desses pedidos tinham brinde de campanha. Implementar conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisar como o brinde chega à bancada.",
+     "justificativa": "Pedido entregue em 16/09 com item faltante (brinde) e 13 dias úteis sem solução, o que já eleva a chance de cancelamento a 40%. Cliente de alto valor (R$ 3.636 acumulados, 38 pedidos) com R$ 967 de margem futura em risco se mal resolvido. Reenvio do item faltante custa R$ 37,38 (CMV 24% + frete), menor que o reembolso de R$ 46,98 e preserva a relação, alinhado à ação padrão do playbook.",
+     "mensagem_cliente": "Oi! Aqui é do time Kokeshi. Seu pedido GB7004753 chegou sem o brinde que acompanhava o Deo Cheiro de Rica, e já estamos reenviando esse item para você. Pedimos desculpas pelo transtorno e agradecemos a paciência.",
+     "order_id": "GB7004753"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "pessoa",
+     "custo_estimado": 42.08
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7004753",
+   "acao": "reenvio_item_faltante",
+   "acao_titulo": "Enviar o item que faltou",
+   "acoes_complementares": [
+    "desculpas_cupom"
+   ],
+   "executor": "pessoa",
+   "motivo_alcada": "Cliente com receita acumulada de R$ 3.636: uma pessoa aprova.",
+   "custo_estimado": 42.08,
+   "perda_evitada": 405.61,
+   "justificativa": "Pedido entregue em 16/09 com item faltante (brinde) e 13 dias úteis sem solução, o que já eleva a chance de cancelamento a 40%. Cliente de alto valor (R$ 3.636 acumulados, 38 pedidos) com R$ 967 de margem futura em risco se mal resolvido. Reenvio do item faltante custa R$ 37,38 (CMV 24% + frete), menor que o reembolso de R$ 46,98 e preserva a relação, alinhado à ação padrão do playbook.",
+   "mensagem_cliente": "Oi! Aqui é do time Kokeshi. Seu pedido GB7004753 chegou sem o brinde que acompanhava o Deo Cheiro de Rica, e já estamos reenviando esse item para você. Pedimos desculpas pelo transtorno e agradecemos a paciência.",
+   "chamado_interno": "Para o CD: enviar o item que faltou no pedido GB7004753 e conferir se o brinde da campanha foi junto.",
+   "alerta_processo": "Turno da noite do CD2 esquece itens, quase sempre o brinde: 210 dos 278 itens faltantes (76%) vêm desse turno, e 75% desses pedidos tinham brinde de campanha. Implementar conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisar como o brinde chega à bancada."
+  },
+  "duracao_ms": 10305,
+  "espera_s": 9,
+  "gerado_em": "2026-11-09T18:57:16.700Z"
+ },
+ "GB7016890": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-120b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7016890"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7016890",
+     "customer_id": "CL304333",
+     "marca": "Kokeshi",
+     "produto": "KSH-1007 Hid Renov - Olhos De Gueixa 30G",
+     "valor": 29.35,
+     "qtd_itens": 1,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Endereço divergente",
+     "status": "aguardando_transportadora",
+     "data_pedido": "2026-08-01",
+     "data_prometida_ao_cliente": "2026-08-05",
+     "data_prometida_correta_pelo_sla": "2026-08-06",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 39,
+     "atraso_dias_uteis_vs_sla_contratado": 38,
+     "transportadora": "Entrega Já",
+     "destino": "Porto Alegre/RS",
+     "producao": {
+      "maquina": null,
+      "turno": "noite",
+      "cd": "CD1",
+      "lote": "L2606-B"
+     },
+     "data_abertura_excecao": "2026-08-02",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL304333"
+    },
+    "resultado": {
+     "customer_id": "CL304333",
+     "n_pedidos": 38,
+     "receita_acumulada": 3635.53,
+     "cliente_desde": "2025-10-01",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 967.05,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7004753",
+       "tipo": "Item faltante",
+       "status": "aguardando_transportadora"
+      },
+      {
+       "order_id": "GB7016890",
+       "tipo": "Endereço divergente",
+       "status": "aguardando_transportadora"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_transportadora",
+    "argumentos": {
+     "transportadora": "Entrega Já",
+     "uf": "RS"
+    },
+    "resultado": {
+     "transportadora": "Entrega Já",
+     "uf": "RS",
+     "sla_contratado_dias_uteis": 3,
+     "frete_medio": 19.55,
+     "excecoes_dela_fora do Nordeste": 243,
+     "parcela_atraso_ou_rastreio_parado_fora do Nordeste": 0.251,
+     "parcela_atraso_ou_rastreio_parado_outras_transportadoras": 0.161,
+     "parcela_avaria": 0.064,
+     "alternativas_mesma_uf": [
+      {
+       "transportadora": "Rota Express",
+       "sla": 4,
+       "frete": 14.62
+      },
+      {
+       "transportadora": "Veloz Log",
+       "sla": 4,
+       "frete": 17
+      },
+      {
+       "transportadora": "Carga Norte",
+       "sla": 5,
+       "frete": 16.15
+      },
+      {
+       "transportadora": "Postal Nacional",
+       "sla": 6,
+       "frete": 15.3
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7016890"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite por minuto, aguardando 4s."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7016890"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 398.56,
+     "perda_esperada_se_esperar_5_dias_uteis": 398.56,
+     "acao_padrao_do_playbook": {
+      "acao": "confirmar_endereco",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "confirmar_endereco",
+       "descricao": "Confirmar o endereço com o cliente",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "lembrete_cliente",
+       "descricao": "Lembrar o cliente do que falta",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: limite gratuito atingido. O próximo modelo assumiu."
+   },
+   {
+    "tipo": "pensamento",
+    "texto": "**justificativa:**  \nO pedido GB7016890 está com “Endereço divergente” e ainda não foi entregue, com 39 dias úteis de atraso em relação ao prazo prometido ao cliente (probabilidade de cancelamento = 40 %). O cliente CL304333 tem receita acumulada de R$ 3.635,53, classificado como alto valor, e a perda esperada se o caso não for resolvido hoje é de R$ 398,56. As opções calculadas são “confirmar_endereco” (custo = 0) e “lembrete_cliente” (custo = 0). A ação padrão do playbook, confirmar o endereço, resolve a causa da exceção sem gerar custos adicionais e evita a alta perda esperada.\n\n**mensagem_cliente:**  \nOi! Aqui é do time Kokeshi. O pedido GB7016890 está com endereço divergente e ainda não chegou. Por favor, confirme o endereço de entrega para que possamos prosseguir.\n\n**registrar_tratativa**"
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "confirmar_endereco",
+     "acoes_complementares": [],
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "O pedido GB7016890 está com “Endereço divergente” e ainda não foi entregue, com 39 dias úteis de atraso em relação ao prazo prometido ao cliente (probabilidade de cancelamento = 40%). O cliente CL304333 tem receita acumulada de R$ 3.635,53, classificado como alto valor, e a perda esperada se o caso não for resolvido hoje é de R$ 398,56. As opções calculadas são “confirmar_endereco” (custo = 0) e “lembrete_cliente” (custo = 0). A ação padrão do playbook, confirmar o endereço, resolve a causa da exceção sem gerar custos adicionais e evita a alta perda esperada.",
+     "mensagem_cliente": "Oi! Aqui é do time Kokeshi. O pedido GB7016890 está com endereço divergente e ainda não chegou. Por favor, confirme o endereço de entrega para que possamos prosseguir.",
+     "order_id": "GB7016890"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "agente",
+     "custo_estimado": 0
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7016890",
+   "acao": "confirmar_endereco",
+   "acao_titulo": "Confirmar o endereço com o cliente",
+   "acoes_complementares": [],
+   "executor": "agente",
+   "motivo_alcada": "Ação sem custo: o agente executa sozinho.",
+   "custo_estimado": 0,
+   "perda_evitada": 398.56,
+   "justificativa": "O pedido GB7016890 está com “Endereço divergente” e ainda não foi entregue, com 39 dias úteis de atraso em relação ao prazo prometido ao cliente (probabilidade de cancelamento = 40%). O cliente CL304333 tem receita acumulada de R$ 3.635,53, classificado como alto valor, e a perda esperada se o caso não for resolvido hoje é de R$ 398,56. As opções calculadas são “confirmar_endereco” (custo = 0) e “lembrete_cliente” (custo = 0). A ação padrão do playbook, confirmar o endereço, resolve a causa da exceção sem gerar custos adicionais e evita a alta perda esperada.",
+   "mensagem_cliente": "Oi! Aqui é do time Kokeshi. O pedido GB7016890 está com endereço divergente e ainda não chegou. Por favor, confirme o endereço de entrega para que possamos prosseguir.",
+   "chamado_interno": "Sem chamado interno.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 9314,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:57:35.127Z"
+ },
+ "GB7005320": {
+  "modo": "ia",
+  "modelo": "openai/gpt-oss-20b",
+  "passos": [
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_pedido",
+    "argumentos": {
+     "order_id": "GB7005320"
+    },
+    "resultado": {
+     "situacao_entrega": "ainda não entregue",
+     "order_id": "GB7005320",
+     "customer_id": "CL300042",
+     "marca": "Lescent",
+     "produto": "LSC-1121 Deo Colonia No 31 Authentic Milano - 25Ml",
+     "valor": 38.49,
+     "qtd_itens": 1,
+     "brinde_no_pedido": false,
+     "tipo_excecao": "Endereço divergente",
+     "status": "aberta",
+     "data_pedido": "2026-08-12",
+     "data_prometida_ao_cliente": "2026-08-19",
+     "data_prometida_correta_pelo_sla": "2026-08-21",
+     "data_entrega": null,
+     "atraso_dias_uteis_vs_prometido": 29,
+     "atraso_dias_uteis_vs_sla_contratado": 27,
+     "transportadora": "Carga Norte",
+     "destino": "Goiânia/GO",
+     "producao": {
+      "maquina": null,
+      "turno": "manhã",
+      "cd": "CD1",
+      "lote": "L2605-C"
+     },
+     "data_abertura_excecao": "2026-08-12",
+     "registro_duplicado_na_fila": false,
+     "data_referencia": "2026-09-30"
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_cliente",
+    "argumentos": {
+     "customer_id": "CL300042"
+    },
+    "resultado": {
+     "customer_id": "CL300042",
+     "n_pedidos": 28,
+     "receita_acumulada": 4592.06,
+     "cliente_desde": "2025-05-26",
+     "contatos_atendimento_12m": 3,
+     "cliente_alto_valor": true,
+     "chance_recompra_12m": 0.7,
+     "margem_futura_em_risco_se_mal_resolvido": 906.19,
+     "excecoes_abertas": [
+      {
+       "order_id": "GB7005320",
+       "tipo": "Endereço divergente",
+       "status": "aberta"
+      },
+      {
+       "order_id": "GB7022755",
+       "tipo": "Vazamento",
+       "status": "aguardando_cliente"
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "aviso",
+    "texto": "Modelo openai/gpt-oss-20b: chamada de ferramenta malformada, tentando de novo."
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "consultar_transportadora",
+    "argumentos": {
+     "transportadora": "Carga Norte",
+     "uf": "GO"
+    },
+    "resultado": {
+     "transportadora": "Carga Norte",
+     "uf": "GO",
+     "sla_contratado_dias_uteis": 6,
+     "frete_medio": 18.05,
+     "excecoes_dela_fora do Nordeste": 229,
+     "parcela_atraso_ou_rastreio_parado_fora do Nordeste": 0.148,
+     "parcela_atraso_ou_rastreio_parado_outras_transportadoras": 0.186,
+     "parcela_avaria": 0.288,
+     "alternativas_mesma_uf": [
+      {
+       "transportadora": "Rota Express",
+       "sla": 5,
+       "frete": 16.34
+      },
+      {
+       "transportadora": "Veloz Log",
+       "sla": 5,
+       "frete": 19
+      },
+      {
+       "transportadora": "Entrega Já",
+       "sla": 4,
+       "frete": 21.85
+      },
+      {
+       "transportadora": "Postal Nacional",
+       "sla": 7,
+       "frete": 17.1
+      }
+     ]
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "verificar_causa_sistemica",
+    "argumentos": {
+     "order_id": "GB7005320"
+    },
+    "resultado": {
+     "faz_parte_de_problema_recorrente": false
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "calcular_opcoes",
+    "argumentos": {
+     "order_id": "GB7005320"
+    },
+    "resultado": {
+     "chance_cancelamento_hoje": 0.4,
+     "perda_esperada_se_resolver_hoje": 377.87,
+     "perda_esperada_se_esperar_5_dias_uteis": 377.87,
+     "acao_padrao_do_playbook": {
+      "acao": "confirmar_endereco",
+      "complementares": []
+     },
+     "opcoes": [
+      {
+       "acao": "confirmar_endereco",
+       "descricao": "Confirmar o endereço com o cliente",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      },
+      {
+       "acao": "lembrete_cliente",
+       "descricao": "Lembrar o cliente do que falta",
+       "custo": 0,
+       "executor": "agente",
+       "motivo_alcada": "Ação sem custo: o agente executa sozinho."
+      }
+     ],
+     "regra_de_alcada": "Agente executa sozinho ações sem custo e gastos até R$ 60. Reembolso, substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação de uma pessoa."
+    }
+   },
+   {
+    "tipo": "ferramenta",
+    "nome": "registrar_tratativa",
+    "argumentos": {
+     "acao": "confirmar_endereco",
+     "alerta_processo": "",
+     "chamado_interno": "",
+     "justificativa": "O pedido está com atraso de 29 dias úteis e a exceção é endereço divergente. A probabilidade de cancelamento hoje é 40% e a perda esperada é de R$377,87. A ação padrão do playbook é confirmar endereço, sem custo e dentro da alçada do agente. Isso evita risco de cancelamento e mantém a chance de recompra alta.",
+     "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7005320 está com endereço divergente. Por favor, confirme seu endereço para que possamos entregar o produto o quanto antes. Obrigado!",
+     "order_id": "GB7005320"
+    },
+    "resultado": {
+     "registrado": true,
+     "executor": "agente",
+     "custo_estimado": 0
+    }
+   }
+  ],
+  "tratativa": {
+   "order_id": "GB7005320",
+   "acao": "confirmar_endereco",
+   "acao_titulo": "Confirmar o endereço com o cliente",
+   "acoes_complementares": [],
+   "executor": "agente",
+   "motivo_alcada": "Ação sem custo: o agente executa sozinho.",
+   "custo_estimado": 0,
+   "perda_evitada": 377.87,
+   "justificativa": "O pedido está com atraso de 29 dias úteis e a exceção é endereço divergente. A probabilidade de cancelamento hoje é 40% e a perda esperada é de R$377,87. A ação padrão do playbook é confirmar endereço, sem custo e dentro da alçada do agente. Isso evita risco de cancelamento e mantém a chance de recompra alta.",
+   "mensagem_cliente": "Oi! Aqui é do time Lescent. O pedido GB7005320 está com endereço divergente. Por favor, confirme seu endereço para que possamos entregar o produto o quanto antes. Obrigado!",
+   "chamado_interno": "Sem chamado interno.",
+   "alerta_processo": null
+  },
+  "duracao_ms": 6348,
+  "espera_s": 0,
+  "gerado_em": "2026-11-09T18:59:54.144Z"
+ }
+}

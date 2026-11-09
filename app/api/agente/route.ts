@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { rodarAgente } from "@/lib/agente/agente";
-import { casoPorId } from "@/lib/dados";
+import { casoPorId, pregeradoPorId } from "@/lib/dados";
 import type { RespostaAgente } from "@/lib/tipos";
 
 export const runtime = "nodejs";
@@ -25,6 +25,9 @@ export async function POST(req: Request) {
   if (!casoPorId(orderId)) return NextResponse.json({ erro: `Pedido ${orderId || "(vazio)"} não está na fila de exceções.` }, { status: 404 });
 
   if (!refazer && cache.has(orderId)) return NextResponse.json({ ...cache.get(orderId)!, do_cache: true });
+  // Caso com tratativa pré-gerada pela IA: devolve na hora. "Rodar de novo" manda refazer e roda ao vivo.
+  const pronto = !refazer && pregeradoPorId(orderId);
+  if (pronto) return NextResponse.json(pronto);
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   const agora = Date.now();
