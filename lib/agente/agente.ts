@@ -16,6 +16,8 @@ const MAX_PASSOS = 6;
 /** Se o 429 pede para esperar no máximo isso, espera e tenta o mesmo modelo de novo em vez de trocar. */
 const ESPERA_MAX_S = 6;
 
+const AVISO_COTA = "A cota gratuita de IA acabou por agora; esta tratativa veio do playbook. Tente de novo em 1 minuto.";
+
 const CONTRADIZ_ALCADA =
   /(dentro d[ao] (limite|alçada)|alçada do agente|(execut[áa]vel|executad[ao]|executa[r]?)\s+(pelo|por|o)?\s*agente|agente\s+(executa|pode executar|resolve)|sozinho)/i;
 
@@ -156,7 +158,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
     duracao_ms: Date.now() - inicio,
   });
 
-  if (!chave) return porRegras("Sem chave de IA configurada (GROQ_API_KEY). A tratativa foi montada pelo playbook de regras.");
+  if (!chave) return porRegras("Sem chave de IA configurada (GROQ_API_KEY); esta tratativa veio do playbook.");
 
   const mensagens: Msg[] = [
     { role: "system", content: SISTEMA },
@@ -199,7 +201,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         // Chave recusada vale para todos os modelos: não adianta tentar o próximo.
         if (st === 401 || st === 403) {
           console.error("[agente]", MODELOS[modeloIdx], String(e?.message ?? e).slice(0, 300));
-          return porRegras(`A chave do Groq foi recusada (erro ${st}). Confira a GROQ_API_KEY. A tratativa foi montada pelo playbook de regras.`);
+          return porRegras(`A chave do Groq foi recusada (erro ${st}); esta tratativa veio do playbook. Confira a GROQ_API_KEY.`);
         }
         const motivo = st === 429 ? "limite gratuito atingido" : st === 404 || st === 400 ? "modelo recusou a chamada" : st ? `erro ${st}` : "sem resposta";
         passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: ${motivo}. O próximo modelo assumiu.` });
@@ -208,7 +210,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
       }
     }
     if (!msg) {
-      const r = porRegras("Nenhum modelo de IA respondeu (limite gratuito ou instabilidade). A tratativa foi montada pelo playbook de regras.");
+      const r = porRegras(teveLimite ? AVISO_COTA : "A IA não respondeu agora; esta tratativa veio do playbook. Tente de novo em 1 minuto.");
       // O lote usa isso para esperar a cota em vez de aceitar o playbook.
       return teveLimite ? { ...r, cota_esgotada: true, espera_s: Math.max(5, esperaParaProximoCaso()) } : r;
     }
@@ -264,6 +266,9 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
     }
   }
 
-  if (!tratativa) return porRegras("A IA não fechou a decisão a tempo. A tratativa foi montada pelo playbook de regras.");
+  if (!tratativa) {
+    const r = porRegras(teveLimite ? AVISO_COTA : "A IA não fechou a decisão a tempo; esta tratativa veio do playbook. Tente de novo em 1 minuto.");
+    return teveLimite ? { ...r, cota_esgotada: true, espera_s: Math.max(5, esperaParaProximoCaso()) } : r;
+  }
   return { modo: "ia", modelo: MODELOS[modeloIdx], passos, tratativa, duracao_ms: Date.now() - inicio, espera_s: esperaParaProximoCaso() };
 }
