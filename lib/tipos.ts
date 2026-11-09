@@ -111,6 +111,12 @@ export interface RespostaAgente {
   tratativa: Tratativa;
   aviso?: string;
   duracao_ms: number;
+  /** Segundos até haver cota de IA para o próximo caso (0 = já pode). */
+  espera_s?: number;
+  /** A tratativa veio do playbook porque a cota de IA acabou. */
+  cota_esgotada?: boolean;
+  /** Tratativa gerada antes pela IA e salva no projeto (data ISO). */
+  gerado_em?: string;
 }
 
 export interface Achado {

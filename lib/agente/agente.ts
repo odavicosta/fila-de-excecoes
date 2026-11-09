@@ -19,12 +19,51 @@ const ESPERA_MAX_S = 6;
 const CONTRADIZ_ALCADA =
   /(dentro d[ao] (limite|alçada)|alçada do agente|(execut[áa]vel|executad[ao]|executa[r]?)\s+(pelo|por|o)?\s*agente|agente\s+(executa|pode executar|resolve)|sozinho)/i;
 
-const dormir =(ms: number) => new Promise((r) => setTimeout(r, ms));
+const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Lê o "Please try again in 3.95s" da mensagem de limite do Groq. */
 function segundosParaTentar(msg: string): number | null {
   const m = /try again in (?:(\d+)m)?([\d.]+)s/i.exec(msg);
   return m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : null;
+}
+
+/** "7.66s", "1m2.5s", "120ms" -> segundos */
+function lerDuracao(s: string | null): number | null {
+  if (!s) return null;
+  const m = /^(?:(\d+)h)?(?:(\d+)m(?!s))?(?:([\d.]+)s)?(?:([\d.]+)ms)?$/.exec(s.trim());
+  if (!m) return null;
+  return Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0) + Number(m[4] ?? 0) / 1000;
+}
+
+// Cota de tokens por minuto de cada modelo, lida dos cabeçalhos do Groq. Vale para a instância do servidor;
+// se ela não souber de algo, o 429 corrige.
+const TOKENS_POR_CASO = 6000;
+/** Quando o modelo volta a ter TOKENS_POR_CASO livres (ms desde epoch). */
+const cotas = new Map<string, number>();
+
+/** A cota do Groq repõe o limite por minuto de forma contínua: com R restantes de L, faltam (6000 - R) / L minutos. */
+function registrarCota(modelo: string, h: Headers): boolean {
+  const restantes = Number(h.get("x-ratelimit-remaining-tokens"));
+  const limite = Number(h.get("x-ratelimit-limit-tokens"));
+  if (!h.has("x-ratelimit-remaining-tokens") || !Number.isFinite(restantes) || !(limite > 0)) {
+    const reset = lerDuracao(h.get("x-ratelimit-reset-tokens"));
+    if (reset === null) return false;
+    cotas.set(modelo, Date.now() + reset * 1000);
+    return true;
+  }
+  cotas.set(modelo, Date.now() + (Math.max(0, TOKENS_POR_CASO - restantes) / limite) * 60_000);
+  return true;
+}
+
+/** Segundos até algum modelo ter cota para um caso inteiro (0 = pode rodar já). */
+export function esperaParaProximoCaso(): number {
+  let menor = Infinity;
+  for (const m of MODELOS) {
+    const livreEm = cotas.get(m);
+    if (livreEm === undefined) return 0;
+    menor = Math.min(menor, livreEm - Date.now());
+  }
+  return Math.max(0, Math.ceil(menor / 1000));
 }
 
 const SISTEMA = `Você é o agente de tratativas do time de Operações da Gocase e da GoBeauté.
@@ -68,10 +107,12 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
       body: JSON.stringify(corpo),
       signal: ctrl.signal,
     });
+    const leuCota = registrarCota(modelo, r.headers);
     if (!r.ok) {
       const txt = await r.text();
-      const e = new Error(`HTTP ${r.status}: ${txt.slice(0, 300)}`) as Error & { status?: number };
+      const e = new Error(`HTTP ${r.status}: ${txt.slice(0, 300)}`) as Error & { status?: number; leuCota?: boolean };
       e.status = r.status;
+      e.leuCota = leuCota;
       throw e;
     }
     const j = await r.json();
@@ -125,6 +166,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let cobrancas = 0;
   const vistas = new Set<string>();
   let corrigiuAlcada = false;
+  let teveLimite = false;
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
@@ -135,6 +177,10 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
       } catch (e: any) {
         const st = e?.status;
         const espera = st === 429 ? segundosParaTentar(String(e?.message ?? "")) : null;
+        if (st === 429) {
+          teveLimite = true;
+          if (!e?.leuCota) cotas.set(MODELOS[modeloIdx], Date.now() + (espera ?? 60) * 1000);
+        }
         if (espera !== null && espera <= ESPERA_MAX_S && !esperou) {
           esperou = true;
           passos.push({ tipo: "aviso", texto: `Modelo ${MODELOS[modeloIdx]}: limite por minuto, aguardando ${Math.ceil(espera)}s.` });
@@ -159,7 +205,11 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         modeloIdx++;
       }
     }
-    if (!msg) return porRegras("Nenhum modelo de IA respondeu (limite gratuito ou instabilidade). A tratativa foi montada pelo playbook de regras.");
+    if (!msg) {
+      const r = porRegras("Nenhum modelo de IA respondeu (limite gratuito ou instabilidade). A tratativa foi montada pelo playbook de regras.");
+      // O lote usa isso para esperar a cota em vez de aceitar o playbook.
+      return teveLimite ? { ...r, cota_esgotada: true, espera_s: Math.max(5, esperaParaProximoCaso()) } : r;
+    }
 
     const chamadas = (msg.tool_calls ?? []) as { id: string; function: { name: string; arguments: string } }[];
     mensagens.push({ role: "assistant", content: msg.content ?? "", ...(chamadas.length ? { tool_calls: chamadas } : {}) });
@@ -204,5 +254,5 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   }
 
   if (!tratativa) return porRegras("A IA não fechou a decisão a tempo. A tratativa foi montada pelo playbook de regras.");
-  return { modo: "ia", modelo: MODELOS[modeloIdx], passos, tratativa, duracao_ms: Date.now() - inicio };
+  return { modo: "ia", modelo: MODELOS[modeloIdx], passos, tratativa, duracao_ms: Date.now() - inicio, espera_s: esperaParaProximoCaso() };
 }

@@ -10,6 +10,9 @@ type Registro = { resposta: RespostaAgente; situacao: Situacao; em: string };
 type Aba = "hoje" | "humana" | "automatica";
 
 const CHAVE = "fila-excecoes:tratativas:v1";
+/** No plano gratuito do Groq cabem uns 3 casos por minuto; 5 é um lote que termina em 1-2 minutos. */
+const TAMANHO_LOTE = 5;
+const TENTATIVAS_COTA = 6;
 
 function lerRegistros(): Record<string, Registro> {
   try {
@@ -32,7 +35,8 @@ export default function Fila({ casos, capacidade, inicial, abaInicial }: { casos
   const [busca, setBusca] = useState("");
   const [sel, setSel] = useState<string | null>(inicial ?? null);
   const [registros, setRegistros] = useState<Record<string, Registro>>({});
-  const [lote, setLote] = useState<{ feitos: number; total: number } | null>(null);
+  const [lote, setLote] = useState<{ feitos: number; total: number; aguardandoAte?: number } | null>(null);
+  const pregerados = useMemo(() => new Set<string>(), []);
   const pararLote = useRef(false);
 
   useEffect(() => setRegistros(lerRegistros()), []);
@@ -65,37 +69,64 @@ export default function Fila({ casos, capacidade, inicial, abaInicial }: { casos
   }, [lista, aba]);
 
   const rodar = useCallback(
-    async (id: string, refazer = false): Promise<RespostaAgente | null> => {
+    async (id: string, refazer = false, noLote = false): Promise<RespostaAgente | null> => {
       const r = await fetch("/api/agente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: id, refazer }),
       });
-      const j = await r.json();
+      const j: RespostaAgente & { erro?: string } = await r.json();
       if (!r.ok) throw new Error(j.erro || `Erro ${r.status}`);
-      salvar(id, { resposta: j, situacao: "pendente", em: new Date().toISOString() });
+      // No lote, uma tratativa do playbook por falta de cota não é guardada: o lote espera e roda o caso de novo.
+      if (!(noLote && j.cota_esgotada)) salvar(id, { resposta: j, situacao: "pendente", em: new Date().toISOString() });
       return j;
     },
     [salvar],
   );
 
+  /** Espera em pedaços curtos para o botão Parar responder na hora. */
+  const aguardarCota = async (segundos: number, feitos: number, total: number) => {
+    const ate = Date.now() + segundos * 1000;
+    setLote({ feitos, total, aguardandoAte: ate });
+    while (Date.now() < ate && !pararLote.current) await new Promise((r) => setTimeout(r, 250));
+    setLote({ feitos, total });
+  };
+
   const rodarLote = async (n: number) => {
-    const alvo = lista.filter((c) => !registros[c.order_id]).slice(0, n);
+    const alvo = lista.filter((c) => !registros[c.order_id] && !pregerados.has(c.order_id)).slice(0, n);
     if (!alvo.length) return;
     pararLote.current = false;
     setLote({ feitos: 0, total: alvo.length });
-    for (let i = 0; i < alvo.length; i++) {
-      if (pararLote.current) break;
+    for (let i = 0; i < alvo.length && !pararLote.current; i++) {
       setSel(alvo[i].order_id);
-      try {
-        await rodar(alvo[i].order_id);
-      } catch {
-        /* segue para o próximo; o erro aparece se o caso for aberto */
+      for (let tentativa = 1; tentativa <= TENTATIVAS_COTA && !pararLote.current; tentativa++) {
+        let r: RespostaAgente | null = null;
+        try {
+          r = await rodar(alvo[i].order_id, false, true);
+        } catch {
+          break; /* segue para o próximo; o erro aparece se o caso for aberto */
+        }
+        if (r?.cota_esgotada) {
+          // Depois de várias esperas, fica com o playbook (com o aviso) para o caso não ficar sem tratativa.
+          if (tentativa === TENTATIVAS_COTA) salvar(alvo[i].order_id, { resposta: r, situacao: "pendente", em: new Date().toISOString() });
+          else await aguardarCota(r.espera_s ?? 20, i, alvo.length);
+          continue;
+        }
+        // Entre um caso e outro, espera o tempo que a cota pede.
+        if (i < alvo.length - 1 && (r?.espera_s ?? 0) > 0) await aguardarCota(r!.espera_s!, i + 1, alvo.length);
+        break;
       }
       setLote({ feitos: i + 1, total: alvo.length });
     }
     setLote(null);
   };
+
+  const [, tique] = useState(0);
+  useEffect(() => {
+    if (!lote?.aguardandoAte) return;
+    const t = setInterval(() => tique((x) => x + 1), 500);
+    return () => clearInterval(t);
+  }, [lote?.aguardandoAte]);
 
   const exportar = () => {
     const linhas = lista
@@ -163,11 +194,17 @@ export default function Fila({ casos, capacidade, inicial, abaInicial }: { casos
             {lote ? (
               <button className="botao linha" onClick={() => (pararLote.current = true)}>
                 <span className="carregando" />
-                Agente trabalhando: {lote.feitos} de {lote.total}. Parar
+                {lote.aguardandoAte
+                  ? `Aguardando cota de IA: ${Math.max(1, Math.ceil((lote.aguardandoAte - Date.now()) / 1000))} s (${lote.feitos} de ${lote.total}). Parar`
+                  : `Agente trabalhando: ${lote.feitos} de ${lote.total}. Parar`}
               </button>
             ) : (
-              <button className="botao amarelo" onClick={() => rodarLote(10)} disabled={!lista.some((c) => !registros[c.order_id])}>
-                Rodar o agente nos próximos 10
+              <button
+                className="botao amarelo"
+                onClick={() => rodarLote(TAMANHO_LOTE)}
+                disabled={!lista.some((c) => !registros[c.order_id] && !pregerados.has(c.order_id))}
+              >
+                Rodar o agente nos próximos {TAMANHO_LOTE}
               </button>
             )}
             {aba === "automatica" ? (
