@@ -82,8 +82,19 @@ export default function Metodo() {
         para o cliente e o chamado interno. Custos e alçada são sempre calculados pelo sistema, nunca pelo modelo.
       </p>
       <p>
-        O modelo roda no Groq. Se um modelo bate no limite gratuito, o próximo da lista assume; se nenhum responder, o mesmo playbook de regras monta a
-        tratativa e o app avisa. A solução nunca fica fora do ar por causa da IA.
+        Quando o pedido foi entregue com problema (vazamento, avaria ou item faltante), a consulta ao pedido diz isso e troca &ldquo;atraso&rdquo; por
+        &ldquo;dias sem solução&rdquo;: o pedido chegou, então a mensagem ao cliente fala do problema e nunca diz que ele está atrasado. O sistema também
+        devolve a tratativa para o modelo corrigir quando a justificativa contradiz a alçada ou quando um texto vem cortado no meio.
+      </p>
+      <p>
+        O modelo roda no Groq, no plano gratuito: cada modelo tem 8 mil tokens por minuto e um caso gasta de 5 a 7 mil. O servidor lê a cota que resta
+        e diz quanto tempo falta para caber o próximo caso. Se um modelo bate no limite, o próximo da lista assume; se nenhum tiver cota, o mesmo
+        playbook de regras monta a tratativa e o app avisa. A solução nunca fica fora do ar por causa da IA. O botão &ldquo;Rodar o agente nos próximos
+        5&rdquo; espera a cota entre um caso e outro (&ldquo;Aguardando cota de IA&rdquo;) em vez de aceitar o playbook.
+      </p>
+      <p>
+        Os 15 primeiros casos da fila já vêm com a tratativa gerada pela IA, marcada com a data em que foi gerada, para abrir na hora sem gastar cota.
+        &ldquo;Rodar de novo&rdquo; roda o agente ao vivo.
       </p>
       <p>
         Por que reenviar e não reembolsar: um reenvio custa em média {brl(k.custo_reenvio_medio, 2)} (CMV + frete), um reembolso{" "}
