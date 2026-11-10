@@ -5,7 +5,7 @@ Solução para o **Problema 2 (Operações)** do Desafio AI-First do Gogroup.
 O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos com exceção, tratada por ordem de chegada. A solução faz três coisas:
 
 1. **Ordena a fila pela perda que cada caso evita** se for tratado agora, em vez da ordem de chegada.
-2. **Põe um agente de IA para investigar e resolver cada caso**: ele consulta pedido, cliente e transportadora, verifica se o caso faz parte de um problema recorrente, calcula custo e alçada de cada opção e registra a tratativa com a mensagem para o cliente e o chamado interno. Ações simples ele executa sozinho; as que envolvem dinheiro acima da alçada vão para aprovação de uma pessoa.
+2. **Põe um agente de IA para investigar e resolver cada caso**: ele consulta pedido, cliente e transportadora, verifica se o caso faz parte de um problema recorrente, calcula custo e alçada de cada opção e registra a tratativa com a mensagem para o cliente e o chamado interno. Ações simples ele executa sozinho; as que envolvem dinheiro acima da alçada vão para aprovação de uma pessoa. Os 549 casos mais simples (lembretes, links de pagamento, desculpas por atraso já entregue) não passam pela IA: saem por automação, pelo playbook de regras.
 3. **Aponta as causas raiz** que geram quase metade das exceções e que nenhuma tratativa individual resolve.
 
 ## Resultados (dados com referência em 30/09/2026)
@@ -13,7 +13,7 @@ O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos co
 | | Hoje (ordem de chegada) | Com a solução |
 |---|---|---|
 | Perda esperada na fila atual | R$ 128 mil | **R$ 105 mil** (recupera R$ 22.951) |
-| Casos que ocupam uma pessoa | 2.042 linhas (com 42 duplicadas) | 1.451 (549 o agente resolve sozinho, 110 horas liberadas) |
+| Casos que ocupam uma pessoa | 2.042 linhas (com 42 duplicadas) | 1.451 (549 resolvidos por automação, playbook de regras, 110 horas liberadas) |
 | Dias para zerar a fila | 14 | 10 |
 
 Causas raiz encontradas, com o custo mensal evitável estimado (total de cerca de **R$ 38 mil por mês**):

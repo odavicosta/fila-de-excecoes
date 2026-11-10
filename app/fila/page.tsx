@@ -14,7 +14,7 @@ export default async function PaginaFila({ searchParams }: { searchParams: Promi
       <p className="lead">
         Os {k.capacidade} casos de hoje são os primeiros da ordem que, simulada na fila inteira, perde {brl(k.politicas.urgencia_risco)} contra{" "}
         {brl(k.politicas.fifo)} da ordem de chegada. Escolha um caso e rode o agente, ou deixe ele trabalhar nos próximos 5 da fila. Outros{" "}
-        {num(k.fila_automatica)} casos ele resolve sem ocupar o time.
+        {num(k.fila_automatica)} casos saem por automação (playbook de regras), sem ocupar o time.
       </p>
       <Fila
         casos={lista}

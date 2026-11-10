@@ -51,9 +51,9 @@ export default function Metodo() {
         {dec(k.dia_medio_teto.urgencia_risco)} na proposta. Preferimos pagar a diferença.
       </p>
 
-      <h2>4. O que vai para uma pessoa e o que o agente resolve</h2>
+      <h2>4. O que vai para uma pessoa, o que sai por automação e o que o agente de IA decide</h2>
       <p>
-        {num(k.fila_automatica)} casos não precisam de análise: o agente executa direto e libera {dec(k.horas_liberadas_automacao)} horas de tratativa (12
+        {num(k.fila_automatica)} casos não precisam de análise: saem por automação (playbook de regras, sem IA) e liberam {dec(k.horas_liberadas_automacao)} horas de tratativa (12
         minutos cada).
       </p>
       <ul>
@@ -61,7 +61,7 @@ export default function Metodo() {
         <li>Pagamento pendente: novo link de pagamento.</li>
         <li>Atraso já entregue: pedido de desculpas com cupom de 10%.</li>
       </ul>
-      <p>Nos demais, a alçada é fixa no código, e a IA não consegue mudá-la:</p>
+      <p>Os demais formam a fila humana, onde o agente de IA investiga cada caso e propõe a tratativa. A alçada é fixa no código, e a IA não consegue mudá-la:</p>
       <ul>
         <li>Mensagens, cobrança da transportadora, confirmação de endereço e link de pagamento: o agente executa sozinho.</li>
         <li>Reenvio ou nova produção até {brl(LIMITE_AGENTE)} (87% dos casos custam menos que isso): o agente executa sozinho.</li>

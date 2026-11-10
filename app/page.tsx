@@ -35,8 +35,8 @@ export default function Painel() {
       <h1>Hoje o time trata {k.capacidade} exceções. Estas são as que mais evitam perda.</h1>
       <p className="lead">
         São {num(k.pedidos)} pedidos fora do fluxo e capacidade para {k.capacidade} tratativas por dia. Em vez de seguir a ordem de chegada, cada
-        caso é ordenado pela perda que evita se for tratado agora. Os casos simples o agente de IA resolve sozinho, e cada decisão do time chega
-        investigada e com as mensagens prontas.
+        caso é ordenado pela perda que evita se for tratado agora. Os casos simples saem por automação (playbook de regras), e cada caso da fila humana chega
+        investigado pelo agente de IA, com as mensagens prontas.
       </p>
 
       <Armazem humana={humana} auto={auto} capacidade={k.capacidade} />
@@ -55,7 +55,7 @@ export default function Painel() {
         </div>
         <div>
           <b>{Math.round(k.horas_liberadas_automacao)} horas</b>
-          <p>de tratativa liberadas: {k.fila_automatica} casos que o agente resolve sem ocupar uma pessoa.</p>
+          <p>de tratativa liberadas: {k.fila_automatica} casos resolvidos por automação (playbook de regras), sem ocupar uma pessoa.</p>
         </div>
         <div>
           <b>{k.dias_para_zerar_fifo} dias</b>

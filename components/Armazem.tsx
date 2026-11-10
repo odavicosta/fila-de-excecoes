@@ -20,7 +20,7 @@ export default function Armazem({ humana, auto, capacidade }: { humana: Celula[]
         setDica({
           x: e.clientX + 14,
           y: e.clientY + 14,
-          t: `${c.auto ? "Agente resolve" : `#${i + 1}`} · ${c.id}\n${TIPO[c.tipo]}\nPerda se esperar 5 dias: ${brl(c.perda)}`,
+          t: `${c.auto ? "Automação" : `#${i + 1}`} · ${c.id}\n${TIPO[c.tipo]}\nPerda se esperar 5 dias: ${brl(c.perda)}`,
         })
       }
       onMouseLeave={() => setDica(null)}
@@ -45,7 +45,7 @@ export default function Armazem({ humana, auto, capacidade }: { humana: Celula[]
         </div>
         <div className="bloco">
           <h3>
-            Resolvidos pelo agente <span>{auto.length} casos, hoje</span>
+            Resolvidos por automação (playbook de regras) <span>{auto.length} casos, hoje</span>
           </h3>
           <div className="celulas celulas-auto" style={{ gridTemplateColumns: "repeat(22, minmax(0, 1fr))" }}>
             {auto.map(cel)}

@@ -202,7 +202,7 @@ export default function Fila({
               Toda a fila
             </button>
             <button aria-pressed={aba === "automatica"} onClick={() => setAba("automatica")}>
-              Agente resolve
+              Automação
             </button>
           </div>
           <select value={tipo} onChange={(e) => setTipo(e.target.value)} aria-label="Filtrar por tipo">
