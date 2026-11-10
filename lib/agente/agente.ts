@@ -55,17 +55,21 @@ export function tempoPorExtenso(s: number): string {
 
 // Quando cada modelo volta a ter cota para um caso inteiro. "diario" marca o limite de tokens (ou requisições) por dia,
 // que não se resolve esperando alguns segundos. Vale para a instância do servidor; se ela não souber de algo, o 429 corrige.
-const TOKENS_POR_CASO = 4500; // medido: 3.600 a 4.300 por caso
+// O Groq reserva no limite por minuto a entrada mais o max_tokens inteiro da resposta. A maior chamada de um caso tem
+// cerca de 3.700 tokens de entrada (a investigação já lida), então cada modelo precisa de 3.700 + max_tokens livres.
+const ENTRADA_MAX = 3700;
+const maxTokens = (modelo: string) => (modelo.startsWith("qwen/") ? 4000 : 1400);
+const necessidade = (modelo: string) => ENTRADA_MAX + maxTokens(modelo);
 const cotas = new Map<string, { livreEm: number; diario: boolean }>();
 
-/** O limite por minuto repõe de forma contínua: com R tokens restantes de L, faltam (4500 - R) / L minutos. */
+/** O limite por minuto repõe de forma contínua: com R tokens restantes de L, faltam (necessidade - R) / L minutos. */
 function registrarCotaMinuto(modelo: string, h: Headers) {
   const atual = cotas.get(modelo);
   if (atual?.diario && atual.livreEm > Date.now()) return; // o limite diário manda
   const restantes = Number(h.get("x-ratelimit-remaining-tokens"));
   const limite = Number(h.get("x-ratelimit-limit-tokens"));
   if (h.has("x-ratelimit-remaining-tokens") && Number.isFinite(restantes) && limite > 0) {
-    cotas.set(modelo, { livreEm: Date.now() + (Math.max(0, TOKENS_POR_CASO - restantes) / limite) * 60_000, diario: false });
+    cotas.set(modelo, { livreEm: Date.now() + (Math.max(0, necessidade(modelo) - restantes) / limite) * 60_000, diario: false });
     return;
   }
   const reset = lerDuracao(h.get("x-ratelimit-reset-tokens"));
@@ -142,7 +146,7 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
     tool_choice: "required",
     temperature: 0.2,
     // O qwen gasta parte do limite raciocinando; com 1400 a justificativa do GB7004923 saiu cortada no meio.
-    max_tokens: modelo.startsWith("qwen/") ? 4000 : 1400,
+    max_tokens: maxTokens(modelo),
   };
   if (modelo.startsWith("openai/gpt-oss")) corpo.reasoning_effort = "low";
   const ctrl = new AbortController();
