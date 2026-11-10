@@ -22,7 +22,7 @@ Causas raiz encontradas, com o custo mensal evitável estimado (total de cerca d
 |---|---|---|
 | Turno da noite do CD2 concentra os itens faltantes | 210 dos 278 itens faltantes (76%); os outros cinco turnos têm em média 14 | Conferência por bipagem antes de fechar a caixa nesse turno |
 | Pedido com brinde tem mais item faltante, em todos os turnos | 76% dos itens faltantes tinham brinde, contra 29% nas demais exceções; 79% fora do CD2 noite (associação: os dados não dizem qual item faltou) | Bipar o brinde na separação e registrar qual item faltou |
-| Rota Express no Nordeste | 396 atrasos e rastreios parados; 83% das exceções dela no NE contra 17% das outras; piora a partir de 31/08 | Acionar a transportadora e migrar o volume do NE |
+| Rota Express no Nordeste | 396 atrasos e rastreios parados; 83% das exceções dela no NE contra 17% das outras; piora a partir de 31/08 | Acionar a transportadora já (sem custo). Migrar para a Entrega Já custa R$ 6,67 a mais por pedido e evita ~R$ 7.540/mês: só compensa abaixo de 1.130 pedidos/mês no NE (a base não traz o volume) |
 | Carga Norte avaria | 98 das 186 avarias, com 17% das exceções | Ressarcimento e revisão de embalagem |
 | Lote L2607-B (Condicionador Anti-Frizz 1000ml, Ápice) | 77 dos 111 vazamentos (69%) | Bloquear o lote e acionar o fornecedor |
 | Checkout promete prazo em dias corridos | 100% das datas prometidas; 147 dos 497 "atrasos" (30%) estão dentro do SLA contratado | Corrigir o cálculo para dias úteis |

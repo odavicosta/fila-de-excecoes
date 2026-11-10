@@ -203,6 +203,11 @@ ev_fifo = float((fifo_hoje.perda_5d - fifo_hoje.perda_hoje).sum())
 periodo_meses = (np.datetime64("2026-09-27") - np.datetime64("2026-08-01")) / np.timedelta64(1, "D") / 30.4
 
 
+def brl(x, casas=0):
+    s = f"{x:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"R$ {s}"
+
+
 def br(x, casas=1):
     return f"{x:.{casas}f}".replace(".", ",")
 
@@ -258,6 +263,21 @@ sens_atraso = df.tipo_excecao.isin(["atraso_entrega"])
 promessa_perda_sis = float(df.loc[sens_atraso, "perda_hoje"].sum())
 promessa_perda_cor = float((p_cancel(df.atraso_sla_du.clip(lower=0)) * (df.valor + df.perda_cliente))[sens_atraso].sum())
 exc_rota = n_rota_ne_total * (tx_rota - tx_outros)
+rota_custo_mensal = exc_rota / len(rota_ne) * custo_caso(rota_ne, reenvio=False) / periodo_meses
+
+# Migrar o NE da Rota para a Entrega Já: frete a mais por pedido, ponderado pelas UFs onde a Rota tem exceção no NE
+tra_ne = tra[tra.uf_atendida.isin(NE)].set_index(["transportadora", "uf_atendida"])
+uf_rota = df[(df.transportadora == "Rota Express") & df.uf.isin(NE)].uf.value_counts()
+frete_rota = float(sum(tra_ne.loc[("Rota Express", u), "custo_medio_frete"] * n for u, n in uf_rota.items()) / uf_rota.sum())
+frete_ej = float(sum(tra_ne.loc[("Entrega Já", u), "custo_medio_frete"] * n for u, n in uf_rota.items()) / uf_rota.sum())
+sla_rota = int(tra_ne.loc[("Rota Express", uf_rota.index[0]), "sla_contratado_dias_uteis"])
+sla_ej = int(tra_ne.loc[("Entrega Já", uf_rota.index[0]), "sla_contratado_dias_uteis"])
+frete_extra = frete_ej - frete_rota
+# A base só tem exceções, não o volume enviado. Migrar compensa se o frete a mais no mês for menor que a perda evitada:
+# volume mensal da Rota no NE abaixo deste ponto. Em parcela: exceções por mês / volume de equilíbrio.
+rota_equilibrio_pedidos = rota_custo_mensal / frete_extra if frete_extra > 0 else float("inf")
+rota_exc_mes = n_rota_ne_total / periodo_meses
+rota_equilibrio_parcela = rota_exc_mes / rota_equilibrio_pedidos
 
 achados = [
     {
@@ -283,9 +303,13 @@ achados = [
         f"{tx_rota:.0%} das exceções da Rota no NE são atraso ou rastreio parado, contra {tx_outros:.0%} nas outras transportadoras na mesma região. "
         f"O volume salta na semana de 31/08 (semana 36) e se mantém.",
         "casos": int(df.causa_rota_ne.sum()),
-        "acao": "Acionar a Rota Express com os dados (multa contratual / plano de ação) e migrar o volume do NE para a Entrega Já (SLA 5 du vs 6 du da Rota) enquanto o problema durar.",
+        "acao": f"Acionar a Rota Express já, com os dados (multa contratual e plano de ação), que não custa nada. Migrar o NE para a Entrega Já "
+        f"(SLA de {sla_ej} dias úteis contra {sla_rota}) custa {brl(frete_extra, 2)} a mais de frete por pedido ({brl(frete_ej, 2)} contra {brl(frete_rota, 2)}) "
+        f"e evita cerca de {brl(rota_custo_mensal)} por mês: só compensa se a Rota leva menos de {milhar(rota_equilibrio_pedidos)} pedidos por mês ao NE, "
+        f"ou seja, se mais de {rota_equilibrio_parcela:.0%} dos pedidos dela na região viram exceção. A base não traz o volume enviado; "
+        "com ele a conta fecha. Sem esse número, migrar só se a Rota não melhorar depois de acionada.",
         "tipo": "processo",
-        "custo_mensal": exc_rota / len(rota_ne) * custo_caso(rota_ne, reenvio=False) / periodo_meses,
+        "custo_mensal": rota_custo_mensal,
         "graf": {"label": "Atrasos + rastreio parado da Rota no NE por semana do pedido", "dados": [
             {"k": f"S{int(k)}", "v": int(v)} for k, v in rota_sem.items()]},
     },
@@ -421,6 +445,9 @@ kpis = {
         for k, g in df.groupby("tipo_excecao")
     ],
     "por_status": {k: int(v) for k, v in df.status.value_counts().items()},
+    "rota_frete_extra": round(frete_extra, 2),
+    "rota_equilibrio_pedidos_mes": round(rota_equilibrio_pedidos),
+    "rota_equilibrio_parcela": round(rota_equilibrio_parcela, 3),
     "processo_mensal": round(sum(a["custo_mensal"] for a in achados if a["tipo"] == "processo"), 2),
     "casos_com_causa_sistemica": int(df[[c for c in df.columns if c.startswith("causa_")]].any(axis=1).sum()),
 }

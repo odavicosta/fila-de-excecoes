@@ -55,7 +55,7 @@ export function alertaProcesso(c: Caso): string | null {
       ? "Mais um item faltante do turno da noite do CD2, em pedido com brinde. Conferir por bipagem todos os itens, brinde incluído, antes de fechar a caixa nesse turno."
       : "Mais um item faltante do turno da noite do CD2. Conferir por bipagem todos os itens antes de fechar a caixa nesse turno.";
   if (c.risco_brinde) return "Mais um item faltante em pedido com brinde de campanha. Bipar o brinde na separação, como os itens comprados, e registrar qual item faltou.";
-  if (c.causa_rota_ne) return "Mais um atraso da Rota Express no Nordeste. Somar ao dossiê para renegociar ou migrar o volume.";
+  if (c.causa_rota_ne) return "Mais um atraso da Rota Express no Nordeste. Somar ao dossiê para acionar a transportadora (multa e plano de ação); migrar para a Entrega Já só compensa se o volume dela no NE ficar abaixo do ponto de equilíbrio do frete.";
   if (c.causa_carga_avaria) return "Mais uma avaria da Carga Norte. Pedir ressarcimento e somar ao dossiê de qualidade da transportadora.";
   if (c.causa_ruptura) return "Mais uma ruptura pós-venda da Kokeshi. Sincronizar o estoque do site com o WMS para este SKU.";
   if (c.causa_promessa)
