@@ -20,6 +20,8 @@ const ESPERA_MAX_S = 6;
 const CONTRADIZ_ALCADA =
   /(dentro d[ao] (limite|alçada)|alçada do agente|(execut[áa]vel|executad[ao]|executa[r]?)\s+(pelo|por|o)?\s*agente|agente\s+(executa|pode executar|resolve)|sozinho)/i;
 
+const JA_FEITO = /\bj[áa] (enviamos|reenviamos|fizemos|reembolsamos|produzimos|estamos (enviando|reenviando|produzindo|reembolsando))/i;
+
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Lê o "Please try again in 3.95s" / "in 10m0.48s" / "in 1h2m3s" da mensagem de limite do Groq. */
@@ -118,6 +120,9 @@ Regras de negócio:
 - Se o caso faz parte de um problema recorrente, preencha alerta_processo com o que precisa mudar.
 - Mensagem ao cliente: português do Brasil, tom humano, até 3 frases, sem prometer datas que dependem da transportadora. Comece com "Oi! Aqui é do time <marca do pedido>.", cite o número do pedido e descreva o problema real dele (o tipo_excecao: vazamento, item faltante etc., não "atraso" se não for atraso). Não use o nome do cliente (não temos).
 - Se pedido.situacao_entrega diz "entregue com problema", o pedido CHEGOU: na mensagem e na justificativa fale do problema (vazamento, avaria, item faltante) e dos dias úteis sem solução. Nunca diga que o pedido está atrasado ou com atraso. Se diz "ainda não entregue", nunca diga que o pedido chegou.
+- Se o executor da ação escolhida é "pessoa", a mensagem só sai depois da aprovação: escreva no futuro ("vamos enviar", "vamos fazer o reembolso"), nunca "já enviamos" ou "já fizemos".
+- Se o status é aguardando_cliente, a base não diz o que falta. Peça ao cliente que responda à última mensagem do atendimento; não invente o que falta (endereço, foto, documento etc.).
+- Se pedido.produto_personalizado é true (Gocase), refazer o pedido é nova produção com a mesma personalização, nunca "separar de novo" no CD.
 - chamado_interno: deixe vazio, a não ser que precise de algo além do chamado padrão; o sistema gera o chamado para transportadora, CD ou produção com pedido, SKU, lote e prazo.
 - Seja breve: nada de texto fora das chamadas de ferramenta.`;
 
@@ -206,6 +211,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let teveLimite = false;
   let corrigiuCorte = false;
   let corrigiuAtraso = false;
+  let corrigiuFuturo = false;
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
@@ -287,7 +293,14 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         continue;
       }
       vistas.add(ch.function.name);
-      const { resultado, tratativa: t } = executar(ch.function.name, args);
+      let { resultado, tratativa: t } = executar(ch.function.name, args);
+      // Mensagem que diz "já enviamos" num caso que depende de aprovação, ou "atrasado" num pedido entregue com problema:
+      // na primeira vez volta para o modelo corrigir (travas abaixo); se ele insistir, fica a mensagem do playbook.
+      const msg = String(args.mensagem_cliente ?? "");
+      const jaFeito = !!t && t.executor === "pessoa" && JA_FEITO.test(msg);
+      const atrasado = !!t && entregueComProblema(caso) && /atras/i.test(msg);
+      if ((jaFeito || atrasado) && (!jaFeito || corrigiuFuturo) && (!atrasado || corrigiuAtraso))
+        ({ resultado, tratativa: t } = executar(ch.function.name, { ...args, mensagem_cliente: "" }));
       // A justificativa não pode dizer que o agente executa sozinho quando a alçada manda para uma pessoa.
       if (t && t.executor === "pessoa" && CONTRADIZ_ALCADA.test(t.justificativa) && !corrigiuAlcada) {
         corrigiuAlcada = true;
@@ -301,6 +314,14 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         corrigiuAtraso = true;
         recusar(
           `A tratativa NÃO foi registrada: o pedido foi entregue com problema (${caso.tipo_excecao}), não está atrasado. Reescreva a mensagem ao cliente falando do problema, sem dizer que está atrasado, e registre de novo.`,
+        );
+        continue;
+      }
+      // Ação que depende de aprovação ainda não aconteceu: a mensagem não pode dizer que já foi feita.
+      if (t && t.executor === "pessoa" && JA_FEITO.test(String(args.mensagem_cliente ?? "")) && !corrigiuFuturo) {
+        corrigiuFuturo = true;
+        recusar(
+          `A tratativa NÃO foi registrada: a ação depende de aprovação de uma pessoa (${t.motivo_alcada}), então ainda não foi feita. Reescreva a mensagem no futuro ("vamos enviar"), sem dizer que já foi feita, e registre de novo.`,
         );
         continue;
       }

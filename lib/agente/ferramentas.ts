@@ -74,6 +74,11 @@ function pedido(c: Caso) {
   const comProblema = entregueComProblema(c);
   return {
     situacao_entrega: situacaoEntrega(c),
+    ...(c.status === "aguardando_cliente"
+      ? { o_que_falta_do_cliente: "não registrado: a base só diz que o caso espera uma resposta do cliente" }
+      : {}),
+    // Gocase é sempre personalizado: refazer é nova produção, não nova separação no CD.
+    produto_personalizado: c.marca === "Gocase",
     order_id: c.order_id,
     customer_id: c.customer_id,
     marca: c.marca,

@@ -562,7 +562,7 @@ function Decisao({ t }: { t: Tratativa }) {
       </div>
       <p>{t.justificativa}</p>
       <div>
-        <p className="miudo">Mensagem para o cliente</p>
+        <p className="miudo">Mensagem para o cliente{t.executor === "pessoa" ? " (sai depois da aprovação)" : ""}</p>
         <blockquote>{t.mensagem_cliente}</blockquote>
       </div>
       {t.chamado_interno && t.chamado_interno !== "Sem chamado interno." && (

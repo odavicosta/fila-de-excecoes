@@ -103,9 +103,17 @@ export function acaoPadrao(c: Caso): { acao: CodigoAcao; complementares: CodigoA
   }
 }
 
-function mensagemPadrao(c: Caso, acao: CodigoAcao): string {
+/** Pedido Gocase é sempre personalizado: refazer é produzir de novo, não separar outro do estoque. */
+export const personalizado = (c: Caso) => c.marca === "Gocase";
+
+/**
+ * Mensagem padrão. Quando a ação depende de aprovação, a mensagem fala no futuro ("vamos enviar"): ela só sai
+ * depois que uma pessoa aprova, e não pode dizer que algo já foi feito.
+ */
+function mensagemPadrao(c: Caso, acao: CodigoAcao, aprovacao: boolean): string {
   const produto = c.descricao_produto;
   const marca = c.marca;
+  const novo = personalizado(c) ? "produzir outro, com a mesma personalização," : "enviar outro,";
   switch (acao) {
     case "desculpas_cupom":
       return `Oi! Aqui é do time ${marca}. Seu pedido ${c.order_id} chegou depois do prazo que prometemos, e isso não é o padrão que queremos para você. Como pedido de desculpas, deixamos um cupom de 10% para a sua próxima compra: DESCULPA10.`;
@@ -117,18 +125,18 @@ function mensagemPadrao(c: Caso, acao: CodigoAcao): string {
       return `Oi! A transportadora não conseguiu entregar o pedido ${c.order_id} no endereço cadastrado em ${c.cidade}/${c.uf}. Pode confirmar o endereço completo, com número e complemento? Assim que você responder, enviamos de novo sem custo.`;
     case "reenvio":
     case "tratar_como_extravio":
-      return `Oi! Aqui é do time ${marca}. Vimos que o seu pedido ${c.order_id} (${produto}) teve um problema na entrega. Já enviamos outro, sem custo para você, e mandamos o novo rastreio assim que ele sair.`;
+      return `Oi! Aqui é do time ${marca}. Vimos que o seu pedido ${c.order_id} (${produto}) teve um problema na entrega. ${aprovacao ? `Vamos ${novo}` : `Já pedimos para ${novo}`} sem custo para você, e mandamos o novo rastreio assim que ele sair.`;
     case "reenvio_item_faltante":
-      return `Oi! Aqui é do time ${marca}. Sentimos muito: faltou um item no seu pedido ${c.order_id}. Já estamos enviando o que faltou, sem custo, e você recebe o rastreio por aqui.`;
+      return `Oi! Aqui é do time ${marca}. Sentimos muito: faltou um item no seu pedido ${c.order_id}. ${aprovacao ? "Vamos enviar o que faltou" : "Já pedimos o envio do que faltou"}, sem custo, e você recebe o rastreio por aqui.`;
     case "reproduzir_personalizacao":
-      return `Oi! Aqui é do time Gocase. Na conferência, vimos que a personalização do seu ${produto} não saiu perfeita. Já estamos produzindo de novo e te avisamos assim que ele for despachado.`;
+      return `Oi! Aqui é do time Gocase. Na conferência, vimos que a personalização do seu ${produto} não saiu perfeita. ${aprovacao ? "Vamos produzir de novo" : "Já pedimos para produzir de novo"} e te avisamos assim que ele for despachado.`;
     case "oferecer_substituto":
       return `Oi! Aqui é do time ${marca}. O ${produto} do seu pedido ${c.order_id} acabou no estoque depois da sua compra. Podemos enviar um produto equivalente agora ou fazer o reembolso integral. O que você prefere?`;
     case "reembolso":
-      return `Oi! Aqui é do time ${marca}. Fizemos o reembolso integral de ${brl(c.valor, 2)} do pedido ${c.order_id}. O valor aparece em até 2 faturas no cartão ou 5 dias úteis no pix.`;
+      return `Oi! Aqui é do time ${marca}. Vamos fazer o reembolso integral de ${brl(c.valor, 2)} do pedido ${c.order_id}. Depois de feito, o valor aparece em até 2 faturas no cartão ou 5 dias úteis no pix.`;
     case "cobrar_transportadora":
     case "contato_proativo":
-      return `Oi! Aqui é do time ${marca}. Seu pedido ${c.order_id} está atrasado com a ${c.transportadora}. Já cobramos a transportadora e te mandamos a nova previsão de entrega até amanhã.`;
+      return `Oi! Aqui é do time ${marca}. Seu pedido ${c.order_id} está atrasado com a ${c.transportadora}. Já cobramos a transportadora e, assim que ela responder, te mandamos a nova previsão por aqui.`;
   }
 }
 
@@ -142,9 +150,17 @@ function chamadoPadrao(c: Caso, acao: CodigoAcao, compl: CodigoAcao[]): string {
       }.`,
     );
   if (todas.includes("reenvio") || todas.includes("tratar_como_extravio"))
-    partes.push(`Para o CD: separar novamente o ${c.sku} (${c.descricao_produto}) para o pedido ${c.order_id}${c.causa_lote ? ", de um lote diferente do L2607-B" : ""}.`);
+    partes.push(
+      personalizado(c)
+        ? `Para a produção: produzir de novo o ${c.sku} (${c.descricao_produto}) do pedido ${c.order_id}, com a mesma personalização${c.maquina === "IMP-02" ? ", em outra impressora (não na IMP-02)" : ""}, e despachar com prioridade.`
+        : `Para o CD: separar novamente o ${c.sku} (${c.descricao_produto}) para o pedido ${c.order_id}${c.causa_lote ? ", de um lote diferente do L2607-B" : ""}.`,
+    );
   if (acao === "reenvio_item_faltante")
-    partes.push(`Para o CD: enviar o item que faltou no pedido ${c.order_id}${c.brinde_no_pedido ? " e conferir se o brinde da campanha foi junto" : ""}.`);
+    partes.push(
+      `Para o CD: enviar o item que faltou no pedido ${c.order_id}${c.brinde_no_pedido ? " e conferir se o brinde da campanha foi junto" : ""}${
+        personalizado(c) ? "; se o item que faltou for o personalizado, abrir pedido de nova produção" : ""
+      }.`,
+    );
   if (acao === "reproduzir_personalizacao")
     partes.push(`Para a produção: reimprimir o ${c.sku} do pedido ${c.order_id} ${c.maquina === "IMP-02" ? "em outra impressora (não na IMP-02)" : "com prioridade"} e despachar no mesmo dia.`);
   return partes.join("\n") || "Sem chamado interno.";
@@ -170,8 +186,12 @@ export function montarTratativa(
     custo_estimado: custo,
     perda_evitada: round(c.perda_5d),
     justificativa: textos?.justificativa?.trim() || justificativaPadrao(c, acao, custo),
-    mensagem_cliente: textos?.mensagem_cliente?.trim() || mensagemPadrao(c, acao),
-    chamado_interno: textos?.chamado_interno?.trim() || chamadoPadrao(c, acao, complementares),
+    mensagem_cliente: textos?.mensagem_cliente?.trim() || mensagemPadrao(c, acao, executor === "pessoa"),
+    // Em pedido Gocase o refazer é produção; um chamado do modelo que mande "separar" de novo é trocado pelo padrão.
+    chamado_interno:
+      textos?.chamado_interno?.trim() && !(personalizado(c) && /separa/i.test(textos.chamado_interno) && todas.some((a) => a === "reenvio" || a === "tratar_como_extravio"))
+        ? textos.chamado_interno.trim()
+        : chamadoPadrao(c, acao, complementares),
     alerta_processo: alerta,
   };
 }

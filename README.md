@@ -84,7 +84,9 @@ Um caso gasta cerca de 5 mil tokens (duas chamadas: investigar e registrar). Ant
 
 #### Travas no código
 
-`registrar_tratativa` só é aceita depois de `investigar_caso`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, ou quando a justificativa ou a mensagem termina no meio de uma frase.
+`registrar_tratativa` só é aceita depois de `investigar_caso`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, quando a mensagem diz "já enviamos" num caso que ainda depende de aprovação, ou quando a justificativa ou a mensagem termina no meio de uma frase. Se o modelo insistir numa mensagem proibida, ela é trocada pela do playbook.
+
+Mensagens do playbook: em caso que vai para aprovação, falam no futuro ("vamos enviar"), porque só saem depois dela; nenhuma promete prazo que depende da transportadora. Em aguardando cliente, a base não diz o que falta, então o agente pede uma resposta sem inventar o motivo. Pedido Gocase é sempre personalizado: refazer é nova produção, não nova separação no CD.
 
 ### Rodar localmente
 
