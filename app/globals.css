@@ -185,3 +185,6 @@ select, input[type="search"] { font: inherit; padding: 6px 9px; border: 1px soli
 @media (prefers-reduced-motion: reduce) {
   .carregando { animation: none; }
 }
+.tecnico { margin-top: 10px; font-size: 13px; color: var(--tinta-2); }
+.tecnico > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.tecnico[open] > summary { margin-bottom: 6px; }

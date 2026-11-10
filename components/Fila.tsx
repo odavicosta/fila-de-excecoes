@@ -301,7 +301,7 @@ export default function Fila({
                         )}
                       </div>
                     </td>
-                    <td className="n opcional">{c.atraso_du} du</td>
+                    <td className="n opcional">{c.atraso_du} {c.atraso_du === 1 ? "dia útil" : "dias úteis"}</td>
                     <td className="n">{brl(aba === "automatica" ? c.perda_hoje : (c.score ?? 0))}</td>
                   </tr>
                 );
@@ -498,6 +498,9 @@ const NOME_FERRAMENTA: Record<string, string> = {
 };
 
 function Passos({ passos, resposta }: { passos: PassoAgente[]; resposta: RespostaAgente }) {
+  const ok = (p: PassoAgente) => p.tipo === "ferramenta" && !(p.resultado as { erro?: string } | undefined)?.erro;
+  const consultas = passos.filter(ok);
+  const tecnicos = passos.filter((p) => !(p.tipo === "aviso" && p.texto === resposta.aviso));
   return (
     <div>
       <h3>Investigação</h3>
@@ -507,25 +510,41 @@ function Passos({ passos, resposta }: { passos: PassoAgente[]; resposta: Respost
             Resultado gerado em {resposta.gerado_em.slice(8, 10)}/{resposta.gerado_em.slice(5, 7)}
           </span>
         )}
-        {resposta.modo === "ia" ? `Decidido pela IA (${resposta.modelo})` : "Decidido pelo playbook de regras"} em {(resposta.duracao_ms / 1000).toFixed(1).replace(".", ",")} s
+        {resposta.modo === "ia" ? "Decidido pela IA" : "Decidido pelo playbook de regras"} em {(resposta.duracao_ms / 1000).toFixed(1).replace(".", ",")} s
         {resposta.gerado_em && ". Use “Rodar de novo” para rodar ao vivo."}
       </p>
+      {resposta.aviso && (
+        <p className="decisao alerta" style={{ marginBottom: 8 }}>
+          {resposta.aviso}
+        </p>
+      )}
       <ol className="passos">
-        {passos.map((p, i) => (
-          <li key={i} className={p.tipo}>
-            {p.tipo === "ferramenta" ? (
-              <details>
-                <summary>
-                  {NOME_FERRAMENTA[p.nome ?? ""] ?? p.nome} <code>{p.nome}</code>
-                </summary>
-                <pre>{JSON.stringify(p.resultado, null, 1)}</pre>
-              </details>
-            ) : (
-              <span>{p.texto}</span>
-            )}
+        {consultas.map((p, i) => (
+          <li key={i} className="ferramenta">
+            <span>{NOME_FERRAMENTA[p.nome ?? ""] ?? "Consultou os dados do caso"}</span>
           </li>
         ))}
       </ol>
+      <details className="tecnico">
+        <summary>Detalhes técnicos</summary>
+        {resposta.modelo && <p className="miudo">Modelo: {resposta.modelo}</p>}
+        <ol className="passos">
+          {tecnicos.map((p, i) => (
+            <li key={i} className={p.tipo}>
+              {p.tipo === "ferramenta" ? (
+                <details>
+                  <summary>
+                    <code>{p.nome}</code>
+                  </summary>
+                  <pre>{JSON.stringify(p.resultado, null, 1)}</pre>
+                </details>
+              ) : (
+                <span>{p.texto}</span>
+              )}
+            </li>
+          ))}
+        </ol>
+      </details>
     </div>
   );
 }
