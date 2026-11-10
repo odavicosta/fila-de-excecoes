@@ -46,7 +46,9 @@ export default function Painel() {
           <span className="antes">{mil(k.perda_antes)}</span>
           <b>{mil(k.perda_depois)}</b>
           <p>
-            de perda esperada na fila atual, contra {mil(k.perda_antes)} tratando por ordem de chegada. Recupera {brl(k.recuperado_backlog)}.
+            de perda esperada na fila atual, contra {mil(k.perda_antes)} tratando por ordem de chegada. Recupera {brl(k.recuperado_backlog)}:{" "}
+            {brl(k.economia_vs_fifo)} por tratar a fila humana na ordem certa e {brl(k.recuperado_backlog - k.economia_vs_fifo)} supondo que as{" "}
+            {k.fila_automatica} automações resolvem o caso no mesmo dia (premissa otimista: quem não responde ao lembrete volta para a fila).
           </p>
         </div>
         <div>

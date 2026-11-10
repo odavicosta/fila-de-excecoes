@@ -12,7 +12,7 @@ O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos co
 
 | | Hoje (ordem de chegada) | Com a solução |
 |---|---|---|
-| Perda esperada na fila atual | R$ 128 mil | **R$ 105 mil** (recupera R$ 22.951) |
+| Perda esperada na fila atual | R$ 128 mil | **R$ 105 mil** (recupera R$ 22.951: R$ 12.962 da reordenação da fila humana e R$ 9.989 supondo que as automações resolvem no mesmo dia) |
 | Casos que ocupam uma pessoa | 2.042 linhas (com 42 duplicadas) | 1.451 (549 resolvidos por automação, playbook de regras, 110 horas liberadas) |
 | Dias para zerar a fila | 14 | 10 |
 
