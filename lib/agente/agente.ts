@@ -22,6 +22,9 @@ const CONTRADIZ_ALCADA =
 
 const JA_FEITO = /\bj[áa] (enviamos|reenviamos|fizemos|reembolsamos|produzimos|estamos (enviando|reenviando|produzindo|reembolsando))/i;
 
+/** "chegou" num pedido que não foi entregue (mas não "não chegou" / "ainda não chegou"). */
+const CHEGOU = /^(?!.*\bn[ãa]o chegou\b).*\bchegou\b/is;
+
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Lê o "Please try again in 3.95s" / "in 10m0.48s" / "in 1h2m3s" da mensagem de limite do Groq. */
@@ -212,6 +215,7 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let corrigiuCorte = false;
   let corrigiuAtraso = false;
   let corrigiuFuturo = false;
+  let corrigiuChegou = false;
   /** Tokens que o Groq contou por modelo neste caso (entrada + saída). */
   const tokens: Record<string, number> = {};
 
@@ -303,7 +307,8 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
       const msg = String(args.mensagem_cliente ?? "");
       const jaFeito = !!t && t.executor === "pessoa" && JA_FEITO.test(msg);
       const atrasado = !!t && entregueComProblema(caso) && /atras/i.test(msg);
-      if ((jaFeito || atrasado) && (!jaFeito || corrigiuFuturo) && (!atrasado || corrigiuAtraso))
+      const chegou = !!t && !caso.entregue && CHEGOU.test(msg);
+      if ((jaFeito || atrasado || chegou) && (!jaFeito || corrigiuFuturo) && (!atrasado || corrigiuAtraso) && (!chegou || corrigiuChegou))
         ({ resultado, tratativa: t } = executar(ch.function.name, { ...args, mensagem_cliente: "" }));
       // A justificativa não pode dizer que o agente executa sozinho quando a alçada manda para uma pessoa.
       if (t && t.executor === "pessoa" && CONTRADIZ_ALCADA.test(t.justificativa) && !corrigiuAlcada) {
@@ -318,6 +323,14 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         corrigiuAtraso = true;
         recusar(
           `A tratativa NÃO foi registrada: o pedido foi entregue com problema (${caso.tipo_excecao}), não está atrasado. Reescreva a mensagem ao cliente falando do problema, sem dizer que está atrasado, e registre de novo.`,
+        );
+        continue;
+      }
+      // Pedido que não foi entregue não "chegou".
+      if (t && !caso.entregue && CHEGOU.test(String(args.mensagem_cliente ?? "")) && !corrigiuChegou) {
+        corrigiuChegou = true;
+        recusar(
+          "A tratativa NÃO foi registrada: o pedido ainda não foi entregue, mas a mensagem diz que ele chegou. Reescreva a mensagem sem dizer que o pedido chegou e registre de novo.",
         );
         continue;
       }
