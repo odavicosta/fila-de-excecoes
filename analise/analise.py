@@ -126,6 +126,9 @@ df["causa_rota_ne"] = (df.transportadora == "Rota Express") & df.uf.isin(NE) & d
 df["causa_carga_avaria"] = (df.transportadora == "Carga Norte") & (df.tipo_excecao == "avaria_transporte")
 df["causa_promessa"] = (df.tipo_excecao == "atraso_entrega") & df.dentro_sla
 df["causa_ruptura"] = (df.tipo_excecao == "ruptura_pos_venda") & (df.marca == "Kokeshi")
+# Fator de risco, não causa: pedido com brinde tem mais item faltante em todos os turnos. Fica fora da contagem
+# de casos com causa recorrente (colunas causa_*), mas o agente avisa quando o caso cai nele.
+df["risco_brinde"] = (df.tipo_excecao == "item_faltante") & df.brinde_no_pedido
 
 # ---------------------------------------------------------------- simulação de políticas
 hum = df[df.fila == "humana"].copy()
@@ -236,7 +239,15 @@ ruptura = df[df.tipo_excecao == "ruptura_pos_venda"]
 rup_marca = ruptura.marca.value_counts()
 rup_sku = ruptura.groupby(["sku", "descricao_produto"]).size().sort_values(ascending=False).head(5)
 
-brinde_cd2n = it[(it.cd == "CD2") & (it.turno == "noite")].brinde_no_pedido.mean()
+it_cd2n = it[(it.cd == "CD2") & (it.turno == "noite")]
+it_outros = it[~((it.cd == "CD2") & (it.turno == "noite"))]
+brinde_cd2n = it_cd2n.brinde_no_pedido.mean()
+brinde_it_outros = it_outros.brinde_no_pedido.mean()
+brinde_demais = df[df.tipo_excecao != "item_faltante"].brinde_no_pedido.mean()
+# excesso de faltas com brinde fora do CD2 noite (lá o custo já está no achado do turno): quantas teriam brinde
+# se o brinde não pesasse, com a parcela de brinde das demais exceções como patamar
+it_outros_brinde = it_outros[it_outros.brinde_no_pedido]
+exc_brinde = excesso(len(it_outros_brinde), len(it_outros) * brinde_demais)
 
 sens_atraso = df.tipo_excecao.isin(["atraso_entrega"])
 promessa_perda_sis = float(df.loc[sens_atraso, "perda_hoje"].sum())
@@ -287,15 +298,31 @@ achados = [
     },
     {
         "id": "cd2_noite",
-        "titulo": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+        "titulo": f"O turno da noite do CD2 concentra {cdturno.get(('CD2', 'noite'), 0)/len(it):.0%} dos itens faltantes",
         "area": "Separação (CD2)",
         "evidencia": f"{int(cdturno.get(('CD2', 'noite'), 0))} dos {len(it)} itens faltantes ({cdturno.get(('CD2', 'noite'), 0)/len(it):.0%}) vêm do turno da noite do CD2; os outros cinco turnos têm em média {base_cd:.0f}. "
-        f"{brinde_cd2n:.0%} desses pedidos tinham brinde de campanha.",
+        "O problema é do turno, não do produto nem do CD inteiro: o CD2 de manhã e à tarde fica no patamar dos demais.",
         "casos": int(cdturno.get(("CD2", "noite"), 0)),
-        "acao": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+        "acao": "Conferir por bipagem todos os itens do pedido antes de fechar a caixa no turno da noite do CD2, e levantar o que muda nesse turno (equipe, volume por pessoa, treinamento, iluminação da bancada).",
         "tipo": "processo",
         "custo_mensal": excesso(cdturno.get(("CD2", "noite"), 0), base_cd) / cdturno.get(("CD2", "noite"), 1) * custo_caso(df[df.causa_cd2_noite]) / periodo_meses,
         "graf": {"label": "Itens faltantes por CD e turno", "dados": [{"k": f"{a} {b}", "v": int(v)} for (a, b), v in cdturno.items()]},
+    },
+    {
+        "id": "brinde",
+        "titulo": "Pedido com brinde de campanha tem mais item faltante, em todos os turnos",
+        "area": "Separação (CD1 e CD2)",
+        "evidencia": f"{it.brinde_no_pedido.mean():.0%} dos itens faltantes eram de pedidos com brinde, contra {brinde_demais:.0%} nas demais exceções. "
+        f"Não é coisa de um turno: fora do turno da noite do CD2 a parcela é {brinde_it_outros:.0%}, e nele, {brinde_cd2n:.0%}. "
+        "É uma associação: os dados não dizem qual item faltou, só que o pedido tinha brinde.",
+        "casos": int(df.risco_brinde.sum()),
+        "acao": "Pôr o brinde na lista de separação como item a bipar, igual aos itens comprados, em todos os turnos; e registrar na exceção qual item faltou, para confirmar se é o brinde.",
+        "tipo": "processo",
+        "custo_mensal": exc_brinde / max(1, len(it_outros_brinde)) * custo_caso(it_outros_brinde) / periodo_meses,
+        "graf": {"label": "Parcela de pedidos com brinde", "unidade": "%", "dados": [
+            {"k": "Itens faltantes, CD2 noite", "v": round(100 * brinde_cd2n)},
+            {"k": "Itens faltantes, outros turnos", "v": round(100 * brinde_it_outros)},
+            {"k": "Demais exceções", "v": round(100 * brinde_demais)}]},
     },
     {
         "id": "lote",
@@ -401,7 +428,7 @@ cols = [
     "custo_medio_frete", "n_pedidos", "receita_acumulada", "data_primeiro_pedido", "n_contatos_atendimento",
     "atraso_du", "atraso_sla_du", "promessa_curta_du", "entregue", "p_cancel_hoje", "perda_cliente", "perda_hoje", "perda_5d",
     "custo_espera", "score", "custo_reenvio", "custo_reembolso", "cliente_vip", "p_recompra", "fila", "prioridade", "dia_previsto",
-] + [c for c in df.columns if c.startswith("causa_")]
+] + [c for c in df.columns if c.startswith("causa_")] + ["risco_brinde"]
 out = df[cols].copy()
 for c in ["perda_cliente", "perda_hoje", "perda_5d", "custo_espera", "score", "custo_reenvio", "custo_reembolso"]:
     out[c] = out[c].round(2)

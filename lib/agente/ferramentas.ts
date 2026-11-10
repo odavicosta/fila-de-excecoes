@@ -145,6 +145,7 @@ function causa(c: Caso) {
   const mapa: Record<string, string> = {
     causa_imp02: "imp02",
     causa_cd2_noite: "cd2_noite",
+    risco_brinde: "brinde",
     causa_lote: "lote",
     causa_rota_ne: "rota_ne",
     causa_carga_avaria: "carga_avaria",

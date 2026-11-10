@@ -133,7 +133,7 @@
    "em_analise": 449,
    "aguardando_cliente": 212
   },
-  "processo_mensal": 37661.62,
+  "processo_mensal": 39675.92,
   "casos_com_causa_sistemica": 985
  },
  "achados": [
@@ -252,11 +252,11 @@
   },
   {
    "id": "cd2_noite",
-   "titulo": "O turno da noite do CD2 esquece itens, quase sempre o brinde",
+   "titulo": "O turno da noite do CD2 concentra 76% dos itens faltantes",
    "area": "Separação (CD2)",
-   "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. 75% desses pedidos tinham brinde de campanha.",
+   "evidencia": "210 dos 278 itens faltantes (76%) vêm do turno da noite do CD2; os outros cinco turnos têm em média 14. O problema é do turno, não do produto nem do CD inteiro: o CD2 de manhã e à tarde fica no patamar dos demais.",
    "casos": 210,
-   "acao": "Conferência obrigatória do brinde (checklist/bipagem) no turno da noite do CD2 e revisão de como o brinde chega à bancada.",
+   "acao": "Conferir por bipagem todos os itens do pedido antes de fechar a caixa no turno da noite do CD2, e levantar o que muda nesse turno (equipe, volume por pessoa, treinamento, iluminação da bancada).",
    "tipo": "processo",
    "custo_mensal": 11921.65,
    "graf": {
@@ -285,6 +285,34 @@
      {
       "k": "CD2 tarde",
       "v": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": "brinde",
+   "titulo": "Pedido com brinde de campanha tem mais item faltante, em todos os turnos",
+   "area": "Separação (CD1 e CD2)",
+   "evidencia": "76% dos itens faltantes eram de pedidos com brinde, contra 29% nas demais exceções. Não é coisa de um turno: fora do turno da noite do CD2 a parcela é 79%, e nele, 75%. É uma associação: os dados não dizem qual item faltou, só que o pedido tinha brinde.",
+   "casos": 211,
+   "acao": "Pôr o brinde na lista de separação como item a bipar, igual aos itens comprados, em todos os turnos; e registrar na exceção qual item faltou, para confirmar se é o brinde.",
+   "tipo": "processo",
+   "custo_mensal": 2014.3,
+   "graf": {
+    "label": "Parcela de pedidos com brinde",
+    "unidade": "%",
+    "dados": [
+     {
+      "k": "Itens faltantes, CD2 noite",
+      "v": 75
+     },
+     {
+      "k": "Itens faltantes, outros turnos",
+      "v": 79
+     },
+     {
+      "k": "Demais exceções",
+      "v": 29
      }
     ]
    }

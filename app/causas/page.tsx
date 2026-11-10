@@ -9,6 +9,7 @@ const DESTAQUE: Record<string, (k: string) => boolean> = {
   rota_ne: () => false,
   imp02: (k) => k === "IMP-02",
   cd2_noite: (k) => k === "CD2 noite",
+  brinde: (k) => k.startsWith("Itens faltantes"),
   lote: (k) => k === "L2607-B",
   carga_avaria: (k) => k === "Carga Norte",
   ruptura: (k) => k.startsWith("KSH"),
@@ -57,7 +58,7 @@ export default function Causas() {
                   itens={a.graf.dados.map((d) => ({
                     rotulo: d.k,
                     valor: d.v,
-                    texto: String(d.v),
+                    texto: `${d.v}${a.graf!.unidade ?? ""}`,
                     ruim: a.id === "rota_ne" ? false : (DESTAQUE[a.id]?.(d.k) ?? false),
                     destaque: a.id === "rota_ne" && Number(d.k.slice(1)) >= 36,
                   }))}

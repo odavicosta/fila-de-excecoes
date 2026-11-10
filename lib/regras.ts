@@ -52,8 +52,9 @@ export function alertaProcesso(c: Caso): string | null {
   if (c.causa_lote) return "Mais um vazamento do lote L2607-B. Bloquear o lote no estoque e abrir não-conformidade com o fornecedor.";
   if (c.causa_cd2_noite)
     return c.brinde_no_pedido
-      ? "Mais um item faltante do turno da noite do CD2 em pedido com brinde. Reforçar a conferência do brinde nesse turno."
-      : "Mais um item faltante do turno da noite do CD2. Reforçar a conferência nesse turno.";
+      ? "Mais um item faltante do turno da noite do CD2, em pedido com brinde. Conferir por bipagem todos os itens, brinde incluído, antes de fechar a caixa nesse turno."
+      : "Mais um item faltante do turno da noite do CD2. Conferir por bipagem todos os itens antes de fechar a caixa nesse turno.";
+  if (c.risco_brinde) return "Mais um item faltante em pedido com brinde de campanha. Bipar o brinde na separação, como os itens comprados, e registrar qual item faltou.";
   if (c.causa_rota_ne) return "Mais um atraso da Rota Express no Nordeste. Somar ao dossiê para renegociar ou migrar o volume.";
   if (c.causa_carga_avaria) return "Mais uma avaria da Carga Norte. Pedir ressarcimento e somar ao dossiê de qualidade da transportadora.";
   if (c.causa_ruptura) return "Mais uma ruptura pós-venda da Kokeshi. Sincronizar o estoque do site com o WMS para este SKU.";

@@ -60,6 +60,8 @@ export interface Caso {
   dia_previsto: number | null;
   causa_imp02: boolean;
   causa_cd2_noite: boolean;
+  /** Fator de risco (não causa): item faltante em pedido com brinde de campanha. */
+  risco_brinde: boolean;
   causa_lote: boolean;
   causa_rota_ne: boolean;
   causa_carga_avaria: boolean;
@@ -130,5 +132,5 @@ export interface Achado {
   acao: string;
   tipo: string;
   custo_mensal: number;
-  graf: { label: string; dados: { k: string; v: number }[] } | null;
+  graf: { label: string; unidade?: string; dados: { k: string; v: number }[] } | null;
 }

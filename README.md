@@ -16,11 +16,12 @@ O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos co
 | Casos que ocupam uma pessoa | 2.042 linhas (com 42 duplicadas) | 1.451 (549 resolvidos por automação, playbook de regras, 110 horas liberadas) |
 | Dias para zerar a fila | 14 | 10 |
 
-Causas raiz encontradas, com o custo mensal evitável estimado (total de cerca de **R$ 38 mil por mês**):
+Causas raiz encontradas, com o custo mensal evitável estimado (total de cerca de **R$ 40 mil por mês**):
 
 | Problema | Evidência | O que mudar |
 |---|---|---|
-| Turno da noite do CD2 esquece itens | 210 dos 278 itens faltantes (76%); 75% com brinde de campanha | Conferência obrigatória do brinde nesse turno |
+| Turno da noite do CD2 concentra os itens faltantes | 210 dos 278 itens faltantes (76%); os outros cinco turnos têm em média 14 | Conferência por bipagem antes de fechar a caixa nesse turno |
+| Pedido com brinde tem mais item faltante, em todos os turnos | 76% dos itens faltantes tinham brinde, contra 29% nas demais exceções; 79% fora do CD2 noite (associação: os dados não dizem qual item faltou) | Bipar o brinde na separação e registrar qual item faltou |
 | Rota Express no Nordeste | 396 atrasos e rastreios parados; 83% das exceções dela no NE contra 17% das outras; piora a partir de 31/08 | Acionar a transportadora e migrar o volume do NE |
 | Carga Norte avaria | 98 das 186 avarias, com 17% das exceções | Ressarcimento e revisão de embalagem |
 | Lote L2607-B (Condicionador Anti-Frizz 1000ml, Ápice) | 77 dos 111 vazamentos (69%) | Bloquear o lote e acionar o fornecedor |
