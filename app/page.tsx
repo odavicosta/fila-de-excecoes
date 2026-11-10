@@ -61,7 +61,10 @@ export default function Painel() {
         </div>
         <div>
           <b>{k.dias_para_zerar_fifo} dias</b>
-          <p>para zerar a fila que precisa de uma pessoa, contra {k.dias_para_zerar_antes} dias hoje (com {k.duplicados} casos duplicados a menos).</p>
+          <p>
+            para zerar a fila que precisa de uma pessoa, contra {k.dias_para_zerar_antes} dias hoje: {k.fila_automatica} casos saem da fila humana pela
+            automação.
+          </p>
         </div>
       </div>
 
