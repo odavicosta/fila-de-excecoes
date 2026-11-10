@@ -31,6 +31,28 @@
    "urgencia_risco": 4.19
   },
   "alfa": 0.5,
+  "curva_alfa": [
+   {
+    "alfa": 0,
+    "perda": 78115.84,
+    "espera_teto": 6.21
+   },
+   {
+    "alfa": 0.25,
+    "perda": 80826.08,
+    "espera_teto": 5.06
+   },
+   {
+    "alfa": 0.5,
+    "perda": 84182.39,
+    "espera_teto": 4.19
+   },
+   {
+    "alfa": 1,
+    "perda": 87192.92,
+    "espera_teto": 3.53
+   }
+  ],
   "promessa_perda_hoje": 13356.73,
   "promessa_perda_corrigida": 8972.24,
   "economia_vs_fifo": 12962.02,

@@ -6,6 +6,8 @@ export const metadata = { title: "Como decidimos · Fila de exceções" };
 
 export default function Metodo() {
   const k = resumo.kpis;
+  const curva = k.curva_alfa as { alfa: number; perda: number; espera_teto: number }[];
+  const alfaEscolhido = curva.find((c) => c.alfa === k.alfa);
   const endDiv = (k.por_tipo as { tipo: string; perda_hoje: number }[]).find((t) => t.tipo === "endereco_divergente")?.perda_hoje ?? 0;
   return (
     <div className="texto">
@@ -51,6 +53,37 @@ export default function Metodo() {
         com {porExtenso(k.n_politicas)} critérios. Ordem de chegada dá {brl(k.politicas.fifo)} de perda esperada; a proposta, {brl(k.politicas.urgencia_risco)}. Usar só a
         urgência daria {brl(k.politicas.custo_espera)}, mas os casos no teto esperariam em média {dec(k.dia_medio_teto.custo_espera)} dias, contra{" "}
         {dec(k.dia_medio_teto.urgencia_risco)} na proposta. Preferimos pagar a diferença.
+      </p>
+      <p>
+        <b>Por que o peso é 0,5.</b> A tabela de cancelamento para em &ldquo;mais de 10 dias&rdquo;: para o modelo, um caso com 30 dias de atraso não
+        perde nada a mais se esperar outra semana, o que não é verdade. O peso sobre a perda que o caso já carrega corrige isso, e tem um preço. Testamos
+        a curva:
+      </p>
+      <div className="lista" style={{ margin: "12px 0" }}>
+        <table className="tabela">
+          <thead>
+            <tr>
+              <th className="n">Peso</th>
+              <th className="n">Perda esperada na fila humana</th>
+              <th className="n">Espera média de quem já passou de 10 dias</th>
+            </tr>
+          </thead>
+          <tbody>
+            {curva.map((c) => (
+              <tr key={c.alfa} style={{ cursor: "default", fontWeight: c.alfa === k.alfa ? 700 : undefined }}>
+                <td className="n">{dec(c.alfa, 2)}</td>
+                <td className="n">{brl(c.perda)}</td>
+                <td className="n">{dec(c.espera_teto)} dias</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Cada dia a menos de espera custa mais que o anterior. Escolhemos {dec(k.alfa, 2)} porque é o menor peso testado que trata os casos no teto
+        dentro de uma semana útil ({dec(alfaEscolhido?.espera_teto ?? 0)} dias, contra {dec(curva[1]?.espera_teto ?? 0)} com peso {dec(curva[1]?.alfa ?? 0, 2)}).
+        Subir para {dec(curva[curva.length - 1].alfa, 2)} tira mais {dec((alfaEscolhido?.espera_teto ?? 0) - curva[curva.length - 1].espera_teto)} dia de espera
+        por mais {brl(curva[curva.length - 1].perda - (alfaEscolhido?.perda ?? 0))}.
       </p>
 
       <h2>4. O que vai para uma pessoa, o que sai por automação e o que o agente de IA decide</h2>

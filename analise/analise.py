@@ -167,6 +167,12 @@ melhor = "urgencia_risco"
 teto = hum.atraso_du.values > 10
 dia_teto = {k: round(float(simula(v)[1][teto].mean()), 2) for k, v in pol.items()}
 _, dia_melhor = simula(pol[melhor])
+
+# Curva do peso: quanto a perda sobe e quanto cai a espera de quem já passou de 10 dias úteis (teto da tabela)
+curva_alfa = []
+for a in [0, 0.25, 0.5, 1]:
+    p_a, d_a = simula(np.argsort(-(hum.custo_espera + a * hum.perda_hoje).values, kind="stable"))
+    curva_alfa.append({"alfa": a, "perda": round(p_a, 2), "espera_teto": round(float(d_a[teto].mean()), 2)})
 _, dia_fifo = simula(pol["fifo"])
 
 hum["prioridade"] = 0
@@ -438,6 +444,7 @@ kpis = {
     "politica_escolhida": melhor,
     "dia_medio_teto": dia_teto,
     "alfa": ALFA,
+    "curva_alfa": curva_alfa,
     "promessa_perda_hoje": round(promessa_perda_sis, 2),
     "promessa_perda_corrigida": round(promessa_perda_cor, 2),
     "economia_vs_fifo": round(res["fifo"] - res[melhor], 2),
