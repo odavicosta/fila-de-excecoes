@@ -122,7 +122,7 @@ export default function Metodo() {
         devolve a tratativa para o modelo corrigir quando a justificativa contradiz a alçada ou quando um texto vem cortado no meio.
       </p>
       <p>
-        O modelo roda no Groq, no plano gratuito: cada modelo tem 8 mil tokens por minuto e 200 mil por dia, divididos entre todos os visitantes, e um caso gasta cerca de 5 mil. Na prática são uns 3 casos por minuto e 120 por dia. O servidor lê a cota que resta
+        O modelo roda no Groq, no plano gratuito: cada modelo tem 8 mil tokens por minuto e 200 mil por dia, divididos entre todos os visitantes, e um caso gasta cerca de 3.900. Na prática são uns 2 casos por minuto em cada modelo e uns 150 por dia no total. O servidor lê a cota que resta
         e diz quanto tempo falta para caber o próximo caso. Se um modelo bate no limite, o próximo da lista assume; se nenhum tiver cota, o mesmo
         playbook de regras monta a tratativa e o app avisa. A solução nunca fica fora do ar por causa da IA. O botão &ldquo;Rodar o agente nos próximos
         5&rdquo; espera a cota entre um caso e outro (&ldquo;Aguardando cota de IA&rdquo;) em vez de aceitar o playbook, e para com um aviso quando a cota diária acaba.

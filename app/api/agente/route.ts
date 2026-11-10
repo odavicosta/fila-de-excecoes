@@ -9,7 +9,7 @@ export const maxDuration = 60;
 // Cache por instância: evita gastar a cota gratuita da IA com o mesmo pedido.
 const cache = new Map<string, RespostaAgente>();
 // Limite por IP compatível com a cota gratuita do Groq, que é compartilhada por todos os visitantes:
-// cerca de 3 casos por minuto e 120 por dia somando os três modelos. Casos pré-gerados e em cache não contam.
+// cerca de 2 casos por minuto em cada modelo e 150 por dia somando os três. Casos pré-gerados e em cache não contam.
 const janela = new Map<string, number[]>();
 const LIMITE_POR_MINUTO = Number(process.env.LIMITE_POR_MINUTO) || 3;
 const LIMITE_POR_DIA = Number(process.env.LIMITE_POR_DIA) || 25;

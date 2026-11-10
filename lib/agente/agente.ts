@@ -55,10 +55,10 @@ export function tempoPorExtenso(s: number): string {
 
 // Quando cada modelo volta a ter cota para um caso inteiro. "diario" marca o limite de tokens (ou requisições) por dia,
 // que não se resolve esperando alguns segundos. Vale para a instância do servidor; se ela não souber de algo, o 429 corrige.
-const TOKENS_POR_CASO = 5000;
+const TOKENS_POR_CASO = 4500; // medido: 3.600 a 4.300 por caso
 const cotas = new Map<string, { livreEm: number; diario: boolean }>();
 
-/** O limite por minuto repõe de forma contínua: com R tokens restantes de L, faltam (5000 - R) / L minutos. */
+/** O limite por minuto repõe de forma contínua: com R tokens restantes de L, faltam (4500 - R) / L minutos. */
 function registrarCotaMinuto(modelo: string, h: Headers) {
   const atual = cotas.get(modelo);
   if (atual?.diario && atual.livreEm > Date.now()) return; // o limite diário manda
