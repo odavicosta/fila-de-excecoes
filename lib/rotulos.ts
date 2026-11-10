@@ -53,6 +53,10 @@ export const dec = (v: number, casas = 1) => v.toLocaleString("pt-BR", { maximum
 
 export const num = (v: number) => v.toLocaleString("pt-BR");
 
+/** 2 -> "dois", 7 -> "sete" (até dez; acima disso, o número). */
+export const porExtenso = (n: number) =>
+  ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez"][n] ?? String(n);
+
 export const pct = (v: number) => `${Math.round(v * 100)}%`;
 
 export const dataBR = (s: string | null | undefined) => {

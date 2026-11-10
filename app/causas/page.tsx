@@ -1,6 +1,6 @@
 import Barras from "@/components/Barras";
 import { resumo } from "@/lib/dados";
-import { brl, num } from "@/lib/rotulos";
+import { brl, dec, num, porExtenso } from "@/lib/rotulos";
 
 export const metadata = { title: "Causas raiz · Fila de exceções" };
 
@@ -15,12 +15,16 @@ const DESTAQUE: Record<string, (k: string) => boolean> = {
   ruptura: (k) => k.startsWith("KSH"),
 };
 
+const maiuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export default function Causas() {
   const k = resumo.kpis;
   const achados = [...resumo.achados].sort((a, b) => b.custo_mensal - a.custo_mensal);
   return (
     <>
-      <h1 style={{ maxWidth: "22ch" }}>Sete problemas geram quase metade das exceções</h1>
+      <h1 style={{ maxWidth: "22ch" }}>
+        {maiuscula(porExtenso(k.n_causas_raiz))} problemas geram quase metade das exceções
+      </h1>
       <p className="lead">
         {num(k.casos_com_causa_sistemica)} dos {num(k.pedidos)} casos ({Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}%) vêm de um problema
         recorrente que nenhuma tratativa individual resolve. Corrigir os processos abaixo evita cerca de {brl(k.processo_mensal)} por mês em reenvios,
@@ -70,7 +74,7 @@ export default function Causas() {
       </div>
       <p className="miudo" style={{ marginTop: 20, maxWidth: "75ch" }}>
         Custo mensal evitável: casos acima do patamar normal (média das outras máquinas, turnos, lotes ou transportadoras) vezes o custo de cada caso
-        (reenvio, contato de R$ 9 e perda esperada por cancelamento), dividido pelos {String(1.9).replace(".", ",")} meses do período. Na promessa de prazo, é a
+        (reenvio, contato de R$ 9 e perda esperada por cancelamento), dividido pelos {dec(k.periodo_meses)} meses do período. Na promessa de prazo, é a
         diferença de perda esperada entre o atraso medido pela data prometida e pelo SLA correto.
       </p>
     </>

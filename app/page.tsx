@@ -1,7 +1,7 @@
 import Armazem from "@/components/Armazem";
 import Barras from "@/components/Barras";
 import { casos, resumo } from "@/lib/dados";
-import { TIPO, brl, dec, num } from "@/lib/rotulos";
+import { TIPO, brl, dec, num, porExtenso } from "@/lib/rotulos";
 import Link from "next/link";
 
 const POLITICAS: Record<string, string> = {
@@ -53,7 +53,10 @@ export default function Painel() {
         </div>
         <div>
           <b>{mil(k.processo_mensal)}</b>
-          <p>por mês evitáveis corrigindo {nProcesso} causas raiz que geram {Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}% das exceções.</p>
+          <p>
+            por mês evitáveis corrigindo {nProcesso} problemas de processo. As {k.n_causas_raiz} causas raiz entre eles geram{" "}
+            {Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}% das exceções.
+          </p>
         </div>
         <div>
           <b>{Math.round(k.horas_liberadas_automacao)} horas</b>
@@ -69,7 +72,7 @@ export default function Painel() {
       </div>
 
       <section className="secao">
-        <h2>Testamos sete jeitos de ordenar a mesma fila</h2>
+        <h2>Testamos {porExtenso(k.n_politicas)} jeitos de ordenar a mesma fila</h2>
         <p className="miudo" style={{ marginTop: 2 }}>
           Só a fila humana, {num(k.fila_humana)} casos
         </p>

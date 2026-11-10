@@ -279,12 +279,28 @@ rota_equilibrio_pedidos = rota_custo_mensal / frete_extra if frete_extra > 0 els
 rota_exc_mes = n_rota_ne_total / periodo_meses
 rota_equilibrio_parcela = rota_exc_mes / rota_equilibrio_pedidos
 
+# ---- números que aparecem nos títulos e textos: sempre calculados, nunca escritos à mão
+mult_imp = maq.get("IMP-02", 0) / base_imp
+tx_av_cn = (cn.tipo_excecao == "avaria_transporte").mean()
+mult_cn = tx_av_cn / taxa_av_outros
+# semana em que a Rota no NE piora: o corte que mais separa a média depois da média antes (ignora a 1ª semana, parcial)
+_sem = rota_sem.iloc[1:]
+_corte = max(range(1, len(_sem)), key=lambda i: _sem.iloc[i:].mean() - _sem.iloc[:i].mean())
+sem_piora = int(_sem.index[_corte])
+seg_piora = pd.Timestamp.fromisocalendar(2026, sem_piora, 1)
+fator_piora = _sem.iloc[_corte:].mean() / _sem.iloc[:_corte].mean()
+lote_top = lotes.index[0]
+vz_lote = vz[vz.lote_produto == lote_top]
+lote_sku_top = vz_lote.sku.value_counts()
+lote_desc = vz_lote[vz_lote.sku == lote_sku_top.index[0]].descricao_produto.iloc[0]
+(rup_sku_top, rup_desc_top), rup_n_top = rup_sku.index[0], int(rup_sku.iloc[0])
+
 achados = [
     {
         "id": "promessa",
         "titulo": "O checkout promete prazo em dias corridos, não em dias úteis",
         "area": "Sistema / checkout",
-        "evidencia": f"Em 100% dos pedidos, a data prometida é a data do pedido mais (1 + SLA) dias corridos. A regra do negócio é em dias úteis. "
+        "evidencia": f"Em {formula_corridos:.0%} dos pedidos, a data prometida é a data do pedido mais (1 + SLA) dias corridos. A regra do negócio é em dias úteis. "
         f"O cliente recebe uma promessa em média {br(df.promessa_curta_du.mean())} dias úteis mais curta do que o contrato com a transportadora permite. "
         f"Dos {len(ent_atraso)} atrasos registrados, {int(df.causa_promessa.sum())} ({df.causa_promessa.sum()/len(ent_atraso):.0%}) estão dentro do SLA contratado: a transportadora cumpriu, a promessa é que estava errada.",
         "casos": int(df.causa_promessa.sum()),
@@ -297,11 +313,11 @@ achados = [
     },
     {
         "id": "rota_ne",
-        "titulo": "Rota Express no Nordeste degradou a partir de setembro",
+        "titulo": f"Rota Express no Nordeste piorou a partir da semana de {seg_piora:%d/%m}",
         "area": "Transportadora",
         "evidencia": f"{int(df.causa_rota_ne.sum())} atrasos e rastreios parados vêm da Rota Express em estados do Nordeste. "
         f"{tx_rota:.0%} das exceções da Rota no NE são atraso ou rastreio parado, contra {tx_outros:.0%} nas outras transportadoras na mesma região. "
-        f"O volume salta na semana de 31/08 (semana 36) e se mantém.",
+        f"Da semana de {seg_piora:%d/%m} (semana {sem_piora}) em diante, a média semanal é {br(fator_piora)} vezes a das semanas anteriores e se mantém.",
         "casos": int(df.causa_rota_ne.sum()),
         "acao": f"Acionar a Rota Express já, com os dados (multa contratual e plano de ação), que não custa nada. Migrar o NE para a Entrega Já "
         f"(SLA de {sla_ej} dias úteis contra {sla_rota}) custa {brl(frete_extra, 2)} a mais de frete por pedido ({brl(frete_ej, 2)} contra {brl(frete_rota, 2)}) "
@@ -315,10 +331,10 @@ achados = [
     },
     {
         "id": "imp02",
-        "titulo": "A impressora IMP-02 gera 6x mais falhas de personalização",
+        "titulo": f"A impressora IMP-02 gera {mult_imp:.0f} vezes mais falhas de personalização que as outras",
         "area": "Produção (CD1)",
         "evidencia": f"{int(maq.get('IMP-02', 0))} das {int(maq.sum())} falhas de personalização ({maq.get('IMP-02', 0)/maq.sum():.0%}) saíram da IMP-02, nos três turnos. "
-        f"As outras cinco impressoras têm em média {base_imp:.0f} falhas cada. Como acontece em todos os turnos, o problema é a máquina, não o operador.",
+        f"As outras {len(maq) - 1} impressoras têm em média {br(base_imp)} falhas cada. Como acontece em todos os turnos, o problema é a máquina, não o operador.",
         "casos": int(maq.get("IMP-02", 0)),
         "acao": "Tirar a IMP-02 da fila para manutenção/calibração e redistribuir para IMP-01 e IMP-03. Reproduzir os itens pendentes em outra máquina.",
         "tipo": "processo",
@@ -355,9 +371,9 @@ achados = [
     },
     {
         "id": "lote",
-        "titulo": "Lote L2607-B do Condicionador Anti-Frizz 1000ml (Ápice) está vazando",
+        "titulo": f"Lote {lote_top} do Condicionador Anti-Frizz 1000ml (Ápice) está vazando",
         "area": "Qualidade / fornecedor",
-        "evidencia": f"{int(lotes.get('L2607-B', 0))} dos {len(vz)} vazamentos ({lotes.get('L2607-B', 0)/len(vz):.0%}) são do lote L2607-B, praticamente todos do mesmo produto. Os demais lotes têm em média {base_lote:.0f} vazamentos.",
+        "evidencia": f"{int(lotes.get('L2607-B', 0))} dos {len(vz)} vazamentos ({lotes.get('L2607-B', 0)/len(vz):.0%}) são do lote {lote_top}; {int(lote_sku_top.iloc[0])} deles são do mesmo produto ({lote_sku_top.index[0]}, {lote_desc}). Os demais lotes têm em média {base_lote:.0f} vazamentos.",
         "casos": int(lotes.get("L2607-B", 0)),
         "acao": "Bloquear o lote no estoque, abrir não-conformidade com o fornecedor e reenviar de outro lote.",
         "tipo": "processo",
@@ -366,7 +382,7 @@ achados = [
     },
     {
         "id": "carga_avaria",
-        "titulo": "Carga Norte avaria 5x mais que as outras transportadoras",
+        "titulo": f"Carga Norte avaria {mult_cn:.0f} vezes mais que as outras transportadoras",
         "area": "Transportadora",
         "evidencia": f"{int(df.causa_carga_avaria.sum())} das {int((df.tipo_excecao=='avaria_transporte').sum())} avarias são da Carga Norte, que tem só {len(cn)/len(df):.0%} das exceções. "
         f"Avaria é {(cn.tipo_excecao=='avaria_transporte').mean():.0%} das exceções dela contra {taxa_av_outros:.0%} nas demais.",
@@ -380,7 +396,7 @@ achados = [
         "id": "ruptura",
         "titulo": "Ruptura pós-venda concentrada em poucos SKUs da Kokeshi",
         "area": "Estoque / site",
-        "evidencia": f"{int(rup_marca.get('Kokeshi', 0))} das {len(ruptura)} rupturas ({rup_marca.get('Kokeshi', 0)/len(ruptura):.0%}) são da Kokeshi. Só o Óleo de Rosa Mosqueta 20ml (KSH-1010) responde por {int(rup_sku.iloc[0])}. O site vende o que não tem.",
+        "evidencia": f"{int(rup_marca.get('Kokeshi', 0))} das {len(ruptura)} rupturas ({rup_marca.get('Kokeshi', 0)/len(ruptura):.0%}) são da Kokeshi. Só o {rup_desc_top} ({rup_sku_top}) responde por {rup_n_top}. O site vende o que não tem.",
         "casos": int(rup_marca.get("Kokeshi", 0)),
         "acao": "Sincronizar o estoque do site com o WMS para esses SKUs e travar a venda abaixo de um estoque de segurança.",
         "tipo": "processo",
@@ -448,6 +464,9 @@ kpis = {
     "rota_frete_extra": round(frete_extra, 2),
     "rota_equilibrio_pedidos_mes": round(rota_equilibrio_pedidos),
     "rota_equilibrio_parcela": round(rota_equilibrio_parcela, 3),
+    "periodo_meses": round(float(periodo_meses), 2),
+    "n_causas_raiz": len([c for c in df.columns if c.startswith("causa_")]),
+    "n_politicas": len(pol),
     "processo_mensal": round(sum(a["custo_mensal"] for a in achados if a["tipo"] == "processo"), 2),
     "casos_com_causa_sistemica": int(df[[c for c in df.columns if c.startswith("causa_")]].any(axis=1).sum()),
 }

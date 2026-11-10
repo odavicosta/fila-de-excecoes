@@ -1,6 +1,6 @@
 import { resumo } from "@/lib/dados";
 import { LIMITE_AGENTE } from "@/lib/regras";
-import { brl, dec, num } from "@/lib/rotulos";
+import { brl, dec, num, porExtenso } from "@/lib/rotulos";
 
 export const metadata = { title: "Como decidimos · Fila de exceções" };
 
@@ -48,7 +48,7 @@ export default function Metodo() {
       <p>
         A primeira parte pega quem está para mudar de faixa: um cliente com 2 dias de atraso tem 4% de chance de cancelar, com 7 dias tem 22%. A segunda
         parte evita que quem já passou de 10 dias, e está no teto de 40%, fique para o fim. Simulamos {num(k.fila_humana)} casos a {k.capacidade} por dia
-        com sete critérios. Ordem de chegada dá {brl(k.politicas.fifo)} de perda esperada; a proposta, {brl(k.politicas.urgencia_risco)}. Usar só a
+        com {porExtenso(k.n_politicas)} critérios. Ordem de chegada dá {brl(k.politicas.fifo)} de perda esperada; a proposta, {brl(k.politicas.urgencia_risco)}. Usar só a
         urgência daria {brl(k.politicas.custo_espera)}, mas os casos no teto esperariam em média {dec(k.dia_medio_teto.custo_espera)} dias, contra{" "}
         {dec(k.dia_medio_teto.urgencia_risco)} na proposta. Preferimos pagar a diferença.
       </p>
