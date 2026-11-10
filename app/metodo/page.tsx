@@ -1,4 +1,4 @@
-import { resumo } from "@/lib/dados";
+import { idsPregerados, resumo } from "@/lib/dados";
 import { LIMITE_AGENTE } from "@/lib/regras";
 import { brl, dec, num, porExtenso } from "@/lib/rotulos";
 
@@ -128,7 +128,7 @@ export default function Metodo() {
         5&rdquo; espera a cota entre um caso e outro (&ldquo;Aguardando cota de IA&rdquo;) em vez de aceitar o playbook, e para com um aviso quando a cota diária acaba.
       </p>
       <p>
-        Os 15 primeiros casos da fila já vêm com a tratativa gerada pela IA, marcada com a data em que foi gerada, para abrir na hora sem gastar cota.
+        Os {idsPregerados.length} primeiros casos da fila já vêm com a tratativa gerada pela IA, marcada com a data em que foi gerada, para abrir na hora sem gastar cota.
         &ldquo;Rodar de novo&rdquo; roda o agente ao vivo.
       </p>
       <p>
