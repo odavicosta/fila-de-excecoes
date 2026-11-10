@@ -528,6 +528,11 @@ function Passos({ passos, resposta }: { passos: PassoAgente[]; resposta: Respost
       <details className="tecnico">
         <summary>Detalhes técnicos</summary>
         {resposta.modelo && <p className="miudo">Modelo: {resposta.modelo}</p>}
+        {resposta.tokens && (
+          <p className="miudo">
+            Tokens usados: {num(Object.values(resposta.tokens).reduce((a, b) => a + b, 0))}
+          </p>
+        )}
         <ol className="passos">
           {tecnicos.map((p, i) => (
             <li key={i} className={p.tipo}>

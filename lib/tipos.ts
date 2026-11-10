@@ -119,6 +119,8 @@ export interface RespostaAgente {
   cota_esgotada?: boolean;
   /** Qual limite acabou: o por minuto (espera curta) ou o diário (o lote para). */
   limite?: "minuto" | "dia";
+  /** Tokens que o Groq contou por modelo neste caso. */
+  tokens?: Record<string, number>;
   /** Tratativa gerada antes pela IA e salva no projeto (data ISO). */
   gerado_em?: string;
 }

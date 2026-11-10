@@ -162,7 +162,7 @@ async function chamarLLM(modelo: string, mensagens: Msg[], chave: string) {
     const escolha = j.choices?.[0];
     if (escolha && !escolha.message?.tool_calls?.length)
       console.error("[agente]", modelo, "resposta sem ferramenta:", escolha.finish_reason, String(escolha.message?.content ?? "").slice(0, 200));
-    return escolha?.message as Msg;
+    return { msg: escolha?.message as Msg, tokens: Number(j.usage?.total_tokens) || 0 };
   } finally {
     clearTimeout(t);
   }
@@ -212,6 +212,8 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   let corrigiuCorte = false;
   let corrigiuAtraso = false;
   let corrigiuFuturo = false;
+  /** Tokens que o Groq contou por modelo neste caso (entrada + saída). */
+  const tokens: Record<string, number> = {};
 
   for (let passo = 0; passo < MAX_PASSOS && !tratativa; passo++) {
     let msg: Msg | undefined;
@@ -226,7 +228,9 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
         continue;
       }
       try {
-        msg = await chamarLLM(modelo, mensagens, chave);
+        const r = await chamarLLM(modelo, mensagens, chave);
+        msg = r.msg;
+        tokens[modelo] = (tokens[modelo] ?? 0) + r.tokens;
       } catch (e) {
         const err = e as ErroLLM;
         const st = err.status;
@@ -339,5 +343,5 @@ export async function rodarAgente(orderId: string): Promise<RespostaAgente> {
   }
 
   if (!tratativa) return teveLimite ? semCota() : porRegras("A IA não fechou a decisão a tempo; esta tratativa veio do playbook. Tente de novo em 1 minuto.");
-  return { modo: "ia", modelo: MODELOS[modeloIdx], passos, tratativa, duracao_ms: Date.now() - inicio, espera_s: situacaoDaCota().espera_s };
+  return { modo: "ia", modelo: MODELOS[modeloIdx], passos, tratativa, duracao_ms: Date.now() - inicio, espera_s: situacaoDaCota().espera_s, tokens };
 }
