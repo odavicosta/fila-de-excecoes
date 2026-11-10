@@ -12,7 +12,7 @@ export default async function PaginaFila({ searchParams }: { searchParams: Promi
     <>
       <h1 style={{ maxWidth: "24ch" }}>Fila do dia</h1>
       <p className="lead">
-        Os {k.capacidade} casos de hoje são os primeiros da ordem que, simulada na fila inteira, perde {brl(k.politicas.urgencia_risco)} contra{" "}
+        Os {k.capacidade} casos de hoje são os primeiros da ordem que, simulada na fila humana ({num(k.fila_humana)} casos), perde {brl(k.politicas.urgencia_risco)} contra{" "}
         {brl(k.politicas.fifo)} da ordem de chegada. Escolha um caso e rode o agente, ou deixe ele trabalhar nos próximos 5 da fila. Outros{" "}
         {num(k.fila_automatica)} casos saem por automação (playbook de regras), sem ocupar o time.
       </p>

@@ -70,8 +70,12 @@ export default function Painel() {
 
       <section className="secao">
         <h2>Testamos sete jeitos de ordenar a mesma fila</h2>
+        <p className="miudo" style={{ marginTop: 2 }}>
+          Só a fila humana, {num(k.fila_humana)} casos
+        </p>
         <p>
-          Simulação com os {num(k.fila_humana)} casos que precisam de uma pessoa, {k.capacidade} por dia. Para cada caso, a perda esperada é a
+          Simulação só com os {num(k.fila_humana)} casos que precisam de uma pessoa, {k.capacidade} por dia, por isso a ordem de chegada aparece aqui
+          com {mil(k.politicas.fifo)} e não com os {mil(k.perda_antes)} da fila inteira acima. Para cada caso, a perda esperada é a
           chance de cancelamento no dia em que ele for resolvido vezes o reembolso mais o valor futuro do cliente. Menor é melhor.
         </p>
         <Barras
