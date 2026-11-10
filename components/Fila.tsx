@@ -13,6 +13,10 @@ const CHAVE = "fila-excecoes:tratativas:v1";
 /** No plano gratuito do Groq cabem uns 3 casos por minuto; 5 é um lote que termina em 1-2 minutos. */
 const TAMANHO_LOTE = 5;
 const TENTATIVAS_COTA = 6;
+/** O servidor aceita 3 execuções por minuto por pessoa; o lote espaça os casos para não bater nesse limite. */
+const INTERVALO_MIN_S = 21;
+
+const tempoTexto = (s: number) => (s < 60 ? `${Math.ceil(s)} segundos` : s < 3600 ? `${Math.ceil(s / 60)} minutos` : `${Math.round(s / 3600)} horas`);
 
 function lerRegistros(): Record<string, Registro> {
   try {
@@ -49,6 +53,7 @@ export default function Fila({
   const [registros, setRegistros] = useState<Record<string, Registro>>({});
   const [lote, setLote] = useState<{ feitos: number; total: number; aguardandoAte?: number } | null>(null);
   const pregerados = useMemo(() => new Set(idsPregerados), [idsPregerados]);
+  const [avisoLote, setAvisoLote] = useState<string | null>(null);
   const pararLote = useRef(false);
 
   useEffect(() => setRegistros(lerRegistros()), []);
@@ -108,15 +113,26 @@ export default function Fila({
     const alvo = lista.filter((c) => !registros[c.order_id] && !pregerados.has(c.order_id)).slice(0, n);
     if (!alvo.length) return;
     pararLote.current = false;
+    setAvisoLote(null);
     setLote({ feitos: 0, total: alvo.length });
-    for (let i = 0; i < alvo.length && !pararLote.current; i++) {
+    lote: for (let i = 0; i < alvo.length && !pararLote.current; i++) {
       setSel(alvo[i].order_id);
       for (let tentativa = 1; tentativa <= TENTATIVAS_COTA && !pararLote.current; tentativa++) {
+        const inicio = Date.now();
         let r: RespostaAgente | null = null;
         try {
           r = await rodar(alvo[i].order_id, false, true);
-        } catch {
-          break; /* segue para o próximo; o erro aparece se o caso for aberto */
+        } catch (e: any) {
+          // Ex.: limite por pessoa. Insistir só gastaria mais tentativas.
+          setAvisoLote(`O lote parou em ${i} de ${alvo.length}: ${String(e?.message ?? e)}`);
+          break lote;
+        }
+        if (r?.cota_esgotada && r.limite === "dia") {
+          // Limite diário não se resolve esperando segundos: para e explica.
+          setAvisoLote(
+            `O lote parou em ${i} de ${alvo.length}: a cota diária gratuita de IA acabou e volta em cerca de ${tempoTexto(r.espera_s ?? 3600)}. Os casos com tratativa pronta continuam abrindo.`,
+          );
+          break lote;
         }
         if (r?.cota_esgotada) {
           // Depois de várias esperas, fica com o playbook (com o aviso) para o caso não ficar sem tratativa.
@@ -124,8 +140,9 @@ export default function Fila({
           else await aguardarCota(r.espera_s ?? 20, i, alvo.length);
           continue;
         }
-        // Entre um caso e outro, espera o tempo que a cota pede.
-        if (i < alvo.length - 1 && (r?.espera_s ?? 0) > 0) await aguardarCota(r!.espera_s!, i + 1, alvo.length);
+        // Entre um caso e outro, espera o que a cota pede e, no mínimo, o espaço do limite por pessoa (3 por minuto).
+        const espera = Math.max(r?.espera_s ?? 0, INTERVALO_MIN_S - (Date.now() - inicio) / 1000);
+        if (i < alvo.length - 1 && espera > 0) await aguardarCota(Math.ceil(espera), i + 1, alvo.length);
         break;
       }
       setLote({ feitos: i + 1, total: alvo.length });
@@ -230,6 +247,11 @@ export default function Fila({
             )}
           </span>
         </div>
+        {avisoLote && (
+          <p className="decisao alerta" role="status" style={{ margin: "0 0 12px" }}>
+            {avisoLote}
+          </p>
+        )}
         <div className="rolagem">
           <table className="tabela">
             <thead>
@@ -465,6 +487,8 @@ function Painel({
 }
 
 const NOME_FERRAMENTA: Record<string, string> = {
+  investigar_caso: "Investigou pedido, cliente, transportadora, problema recorrente e opções",
+  // nomes da versão anterior, que ainda aparecem nas tratativas pré-geradas antes da ferramenta única
   consultar_pedido: "Consultou o pedido",
   consultar_cliente: "Consultou o histórico do cliente",
   consultar_transportadora: "Consultou a transportadora",

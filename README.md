@@ -39,34 +39,38 @@ Foram simulados sete critérios de ordenação sobre a fila humana, a 150 casos 
 
 ## O agente
 
-`lib/agente/` tem o laço do agente (chamadas com *tool calling* no formato OpenAI) e as seis ferramentas:
+`lib/agente/` tem o laço do agente (chamadas com *tool calling* no formato OpenAI) e duas ferramentas. O agente faz duas chamadas ao modelo por caso: investiga e decide.
 
 | Ferramenta | O que faz |
 |---|---|
-| `consultar_pedido` | Pedido, prazos (prometido e correto pelo SLA), situação da entrega, atraso ou dias sem solução, produção e separação |
-| `consultar_cliente` | Histórico, chance de recompra, valor em risco, outras exceções abertas |
-| `consultar_transportadora` | SLA, frete, desempenho na região e alternativas na mesma UF |
-| `verificar_causa_sistemica` | Se o caso faz parte de um problema recorrente e quantos iguais existem |
-| `calcular_opcoes` | Custo, alçada e perda esperada de cada ação possível, e a ação padrão do playbook |
+| `investigar_caso` | Numa consulta só: pedido (prazos, situação da entrega, atraso ou dias sem solução, produção e separação), cliente (histórico, recompra, valor em risco), transportadora (SLA, frete, desempenho, alternativas na mesma UF), se o caso é parte de um problema recorrente, e custo, alçada e perda esperada de cada ação, com a ação padrão do playbook |
 | `registrar_tratativa` | Grava a decisão; custo e alçada são calculados pelo sistema, não pelo modelo |
 
 A alçada (`lib/regras.ts`) é fixa no código: o agente executa sozinho mensagens, cobranças, confirmações de endereço, links de pagamento e reenvios de até R$ 60 (87% dos casos). Reembolso, oferta de substituto, gastos acima de R$ 60 e qualquer gasto com cliente de alto valor vão para aprovação.
 
 **Quando vira extravio.** Atraso na entrega e rastreio parado usam o mesmo critério: pedido não entregue há mais de 10 dias úteis além do SLA contratado é tratado como extravio (reenvio + cobrança da transportadora). Medimos contra o SLA porque extravio é falha da transportadora e a data do checkout está errada. O corte vem dos dados: nenhuma das 809 entregas da base chegou mais de 10 dias úteis depois do SLA (p95 = 6, p99 = 9). Hoje são 34 atrasos e 86 rastreios parados nessa situação. Antes, rastreio parado usava "mais de 5 dias úteis sobre a data prometida" e mandava 114 casos para extravio.
 
-**Pedido entregue com problema não é atraso.** Em vazamento, avaria e item faltante (575 casos) o pedido chegou. `consultar_pedido` diz isso em `situacao_entrega` ("entregue com problema em 10/08 (vazamento)...") e troca os campos de atraso por `dias_uteis_sem_solucao_desde_o_prazo_prometido`. Uma mensagem ao cliente que diga "atrasado" nesses casos volta para o modelo reescrever.
+**Pedido entregue com problema não é atraso.** Em vazamento, avaria e item faltante (575 casos) o pedido chegou. `investigar_caso` diz isso em `situacao_entrega` ("entregue com problema em 10/08 (vazamento)...") e troca os campos de atraso por `dias_uteis_sem_solucao_desde_o_prazo_prometido`. Uma mensagem ao cliente que diga "atrasado" nesses casos volta para o modelo reescrever.
 
 ### Modelos e cota
 
-O modelo roda no Groq (`gpt-oss-20b`, depois `gpt-oss-120b` e `qwen3.8-27b`, este com até 4.000 tokens de resposta porque raciocina antes de responder). No plano gratuito cada modelo tem 8 mil tokens por minuto e um caso gasta de 5 a 7 mil. O servidor lê os cabeçalhos de cota do Groq e devolve, em cada resposta, quantos segundos faltam para caber o próximo caso.
+O modelo roda no Groq (`gpt-oss-20b`, depois `gpt-oss-120b` e `qwen3.8-27b`, este com até 4.000 tokens de resposta porque raciocina antes de responder). O plano gratuito tem dois limites por modelo, compartilhados por **todos os visitantes do link**:
 
-- **Um caso**: se o limite pede poucos segundos, o agente espera; se não, o próximo modelo assume. Se nenhum tiver cota, o playbook monta a tratativa e o app avisa: "A cota gratuita de IA acabou por agora; esta tratativa veio do playbook. Tente de novo em 1 minuto."
-- **Lote de 5** ("Rodar o agente nos próximos 5"): espera o tempo que a cota pede entre um caso e outro e mostra "Aguardando cota de IA: N s". Se um caso ainda assim cair no playbook, o lote não aceita: espera e roda de novo (até 6 vezes).
+| Limite | Valor | O que acontece quando acaba |
+|---|---|---|
+| Por minuto | 8 mil tokens | Se a espera é de poucos segundos, o agente espera; senão, o próximo modelo assume |
+| Por dia (janela móvel de 24 h) | 200 mil tokens | O modelo é pulado sem gastar requisição até a cota voltar |
+
+Um caso gasta cerca de 5 mil tokens (duas chamadas: investigar e registrar). Antes eram três chamadas e cinco ferramentas de consulta; juntar tudo em `investigar_caso` cortou cerca de 44% dos tokens de entrada. Na prática o link aguenta **uns 3 casos por minuto e uns 120 por dia, somando os três modelos e todos os visitantes**. Casos com tratativa pronta e casos já rodados (cache) não gastam cota.
+
+- **Um caso**: se nenhum modelo tiver cota, o playbook monta a tratativa e o app diz qual limite acabou e a espera real: "A cota gratuita de IA acabou por agora; esta tratativa veio do playbook. Tente de novo em 41 segundos." ou "A cota diária gratuita de IA acabou; esta tratativa veio do playbook. A IA volta em cerca de 12 minutos."
+- **Lote de 5** ("Rodar o agente nos próximos 5"): espaça os casos (no mínimo 21 s, ou o que a cota pedir) e mostra "Aguardando cota de IA: N s". No limite por minuto, espera e roda o caso de novo (até 6 vezes). No limite diário, para e explica, porque esperar segundos não resolve.
+- **Limite por pessoa**: 3 execuções por minuto e 25 por dia por IP (`LIMITE_POR_MINUTO` e `LIMITE_POR_DIA`), para um visitante não esgotar a cota dos outros.
 - **Tratativas prontas**: os 15 primeiros casos da fila já têm a tratativa gerada pela IA em `lib/data/pregerados.json`. Ao abrir um deles, o resultado aparece na hora com a etiqueta "Resultado gerado em DD/MM"; "Rodar de novo" roda o agente ao vivo. Para gerar de novo: `node scripts/pregerar.mjs http://localhost:3000 15` com o app rodando.
 
 ### Travas no código
 
-`registrar_tratativa` só é aceita depois de `calcular_opcoes`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, ou quando a justificativa ou a mensagem termina no meio de uma frase.
+`registrar_tratativa` só é aceita depois de `investigar_caso`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, ou quando a justificativa ou a mensagem termina no meio de uma frase.
 
 ## Rodar localmente
 

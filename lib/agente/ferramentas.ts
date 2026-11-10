@@ -24,48 +24,15 @@ const CANDIDATAS: Record<string, CodigoAcao[]> = {
   ruptura_pos_venda: ["oferecer_substituto", "reembolso"],
 };
 
+// Uma consulta só, que devolve tudo de uma vez: com uma rodada a menos e menos definições de ferramenta,
+// cada caso gasta ~30% menos tokens da cota gratuita do Groq.
 export const definicoes = [
   {
     type: "function",
     function: {
-      name: "consultar_pedido",
-      description: "Dados do pedido com exceção: produto, prazos (prometido ao cliente e o correto pelo SLA), atraso em dias úteis, produção e separação.",
-      parameters: { type: "object", properties: { order_id: { type: "string" } }, required: ["order_id"] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "consultar_cliente",
-      description: "Histórico do cliente: pedidos, receita acumulada, chance de recompra, valor futuro em risco e outras exceções abertas dele.",
-      parameters: { type: "object", properties: { customer_id: { type: "string" } }, required: ["customer_id"] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "consultar_transportadora",
-      description: "SLA e frete da transportadora na UF, desempenho dela nas exceções e alternativas para a mesma UF.",
-      parameters: {
-        type: "object",
-        properties: { transportadora: { type: "string" }, uf: { type: "string" } },
-        required: ["transportadora", "uf"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "verificar_causa_sistemica",
-      description: "Verifica se o pedido faz parte de um problema recorrente (máquina, turno, lote, transportadora, cálculo de prazo) e quantos outros casos iguais existem.",
-      parameters: { type: "object", properties: { order_id: { type: "string" } }, required: ["order_id"] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "calcular_opcoes",
-      description: "Custo, alçada (quem pode executar) e perda esperada de cada ação possível para o pedido, mais a ação padrão do playbook.",
+      name: "investigar_caso",
+      description:
+        "Investiga o pedido com exceção e devolve tudo o que é preciso para decidir: pedido (prazos, situação da entrega, atraso, produção), cliente (histórico, recompra, valor em risco), transportadora (SLA, frete, desempenho, alternativas), se é problema recorrente, e custo, alçada e perda esperada de cada ação possível, com a ação padrão do playbook.",
       parameters: { type: "object", properties: { order_id: { type: "string" } }, required: ["order_id"] },
     },
   },
@@ -219,24 +186,23 @@ export function opcoes(c: Caso) {
   };
 }
 
+/** Tudo o que o agente precisa para decidir um caso, numa consulta só. */
+export function investigar(c: Caso) {
+  return {
+    pedido: pedido(c),
+    cliente: cliente(c.customer_id),
+    transportadora: transportadora(c.transportadora, c.uf),
+    problema_recorrente: causa(c),
+    opcoes: opcoes(c),
+  };
+}
+
 export function executar(nome: string, args: Record<string, any>): { resultado: unknown; tratativa?: Tratativa } {
   try {
     switch (nome) {
-      case "consultar_pedido": {
+      case "investigar_caso": {
         const c = casoPorId(String(args.order_id ?? ""));
-        return { resultado: c ? pedido(c) : { erro: "pedido não encontrado" } };
-      }
-      case "consultar_cliente":
-        return { resultado: cliente(String(args.customer_id ?? "")) };
-      case "consultar_transportadora":
-        return { resultado: transportadora(String(args.transportadora ?? ""), String(args.uf ?? "")) };
-      case "verificar_causa_sistemica": {
-        const c = casoPorId(String(args.order_id ?? ""));
-        return { resultado: c ? causa(c) : { erro: "pedido não encontrado" } };
-      }
-      case "calcular_opcoes": {
-        const c = casoPorId(String(args.order_id ?? ""));
-        return { resultado: c ? opcoes(c) : { erro: "pedido não encontrado" } };
+        return { resultado: c ? investigar(c) : { erro: "pedido não encontrado" } };
       }
       case "registrar_tratativa": {
         const c = casoPorId(String(args.order_id ?? ""));

@@ -8,9 +8,11 @@ export const maxDuration = 60;
 
 // Cache por instância: evita gastar a cota gratuita da IA com o mesmo pedido.
 const cache = new Map<string, RespostaAgente>();
-// Limite simples por IP para proteger a cota gratuita.
+// Limite por IP compatível com a cota gratuita do Groq, que é compartilhada por todos os visitantes:
+// cerca de 3 casos por minuto e 120 por dia somando os três modelos. Casos pré-gerados e em cache não contam.
 const janela = new Map<string, number[]>();
-const LIMITE_POR_MINUTO = 20;
+const LIMITE_POR_MINUTO = Number(process.env.LIMITE_POR_MINUTO) || 3;
+const LIMITE_POR_DIA = Number(process.env.LIMITE_POR_DIA) || 25;
 
 export async function POST(req: Request) {
   let orderId = "";
@@ -31,11 +33,19 @@ export async function POST(req: Request) {
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
   const agora = Date.now();
-  const recentes = (janela.get(ip) ?? []).filter((t) => agora - t < 60_000);
-  if (recentes.length >= LIMITE_POR_MINUTO)
-    return NextResponse.json({ erro: "Muitas execuções em um minuto. Espere alguns segundos e tente de novo." }, { status: 429 });
-  recentes.push(agora);
-  janela.set(ip, recentes);
+  const doDia = (janela.get(ip) ?? []).filter((t) => agora - t < 86_400_000);
+  if (doDia.filter((t) => agora - t < 60_000).length >= LIMITE_POR_MINUTO)
+    return NextResponse.json(
+      { erro: `Você já rodou o agente ${LIMITE_POR_MINUTO} vezes no último minuto. A cota de IA é dividida entre todos os visitantes: espere um minuto e tente de novo.` },
+      { status: 429 },
+    );
+  if (doDia.length >= LIMITE_POR_DIA)
+    return NextResponse.json(
+      { erro: `Você já rodou o agente ${LIMITE_POR_DIA} vezes hoje, o limite por pessoa para a cota gratuita de IA. Os casos com tratativa pronta continuam abrindo.` },
+      { status: 429 },
+    );
+  doDia.push(agora);
+  janela.set(ip, doDia);
 
   try {
     const r = await rodarAgente(orderId);

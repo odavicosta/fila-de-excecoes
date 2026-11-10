@@ -115,6 +115,8 @@ export interface RespostaAgente {
   espera_s?: number;
   /** A tratativa veio do playbook porque a cota de IA acabou. */
   cota_esgotada?: boolean;
+  /** Qual limite acabou: o por minuto (espera curta) ou o diário (o lote para). */
+  limite?: "minuto" | "dia";
   /** Tratativa gerada antes pela IA e salva no projeto (data ISO). */
   gerado_em?: string;
 }
