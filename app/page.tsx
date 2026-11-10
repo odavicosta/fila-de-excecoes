@@ -54,7 +54,7 @@ export default function Painel() {
         <div>
           <b>{mil(k.processo_mensal)}</b>
           <p>
-            por mês evitáveis corrigindo {nProcesso} problemas de processo. As {k.n_causas_raiz} causas raiz entre eles geram{" "}
+            por mês evitáveis corrigindo {nProcesso} problemas de processo. As {k.n_causas_raiz} causas raiz entre eles estão ligadas a{" "}
             {Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}% das exceções.
           </p>
         </div>

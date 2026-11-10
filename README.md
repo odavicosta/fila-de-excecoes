@@ -14,7 +14,7 @@ O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos co
 
 1. **Ordena a fila pela perda que cada caso evita** se for tratado agora, em vez da ordem de chegada.
 2. **Põe um agente de IA para investigar e resolver cada caso da fila humana**: numa consulta só, ele lê pedido, cliente, transportadora, se o caso faz parte de um problema recorrente e o custo e a alçada de cada opção; depois registra a tratativa com a mensagem para o cliente e o chamado interno. Ações simples ele executa sozinho; as que envolvem dinheiro acima da alçada vão para aprovação de uma pessoa. Os 549 casos mais simples (lembretes, links de pagamento, desculpas por atraso já entregue) não passam pela IA: saem por automação, pelo playbook de regras.
-3. **Aponta as causas raiz** que geram quase metade das exceções e que nenhuma tratativa individual resolve.
+3. **Aponta as causas raiz** ligadas a quase metade das exceções e que nenhuma tratativa individual resolve.
 
 ## Resultados (dados com referência em 30/09/2026)
 

@@ -23,10 +23,10 @@ export default function Causas() {
   return (
     <>
       <h1 style={{ maxWidth: "22ch" }}>
-        {maiuscula(porExtenso(k.n_causas_raiz))} problemas geram quase metade das exceções
+        {maiuscula(porExtenso(k.n_causas_raiz))} problemas estão ligados a quase metade das exceções
       </h1>
       <p className="lead">
-        {num(k.casos_com_causa_sistemica)} dos {num(k.pedidos)} casos ({Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}%) vêm de um problema
+        {num(k.casos_com_causa_sistemica)} dos {num(k.pedidos)} casos ({Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}%) estão ligados a um problema
         recorrente que nenhuma tratativa individual resolve. Corrigir os processos abaixo evita cerca de {brl(k.processo_mensal)} por mês em reenvios,
         contatos e cancelamentos. O agente marca cada caso novo que cai num desses padrões e manda o alerta junto com a tratativa.
       </p>
