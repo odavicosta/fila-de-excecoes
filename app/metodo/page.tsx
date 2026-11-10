@@ -6,6 +6,7 @@ export const metadata = { title: "Como decidimos · Fila de exceções" };
 
 export default function Metodo() {
   const k = resumo.kpis;
+  const endDiv = (k.por_tipo as { tipo: string; perda_hoje: number }[]).find((t) => t.tipo === "endereco_divergente")?.perda_hoje ?? 0;
   return (
     <div className="texto">
       <h1 style={{ maxWidth: "20ch" }}>Como a fila é ordenada e o que o agente faz</h1>
@@ -31,7 +32,8 @@ export default function Metodo() {
       </p>
       <p>
         <b>Perda esperada</b> = chance de cancelamento pela faixa de atraso (4%, 10%, 22% ou 40%) × (valor pago, que vira reembolso + valor futuro do
-        cliente em risco).
+        cliente em risco). No pagamento pendente não há reembolso: o que se perde é a venda que não se concluiu, então entra a margem dela (76% do
+        valor) no lugar do valor pago.
       </p>
       <p>
         Valor futuro do cliente em risco = metade da chance de recompra (70% para quem passou de R$ 1.500 acumulados, 28% para os demais) × receita anual
@@ -104,6 +106,10 @@ export default function Metodo() {
       <h2>6. Limites</h2>
       <ul>
         <li>A tabela de cancelamento só vai até &ldquo;mais de 10 dias&rdquo;. Um caso com 30 dias pesa igual a um com 11.</li>
+        <li>
+          Endereço divergente usa a mesma tabela de cancelamento por atraso, embora parte da demora dependa do cliente responder com o endereço certo.
+          Mantivemos assim porque o cliente perde a paciência do mesmo jeito; a perda desses casos ({brl(endDiv)}) pode estar superestimada.
+        </li>
         <li>Não sabemos o volume total de pedidos por máquina, turno ou lote, só os que deram exceção. Os excessos são medidos contra a média dos pares.</li>
         <li>O custo evitável das causas raiz supõe que, corrigido o processo, aquele tipo de exceção volta ao patamar dos pares.</li>
         <li>

@@ -12,7 +12,7 @@ O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos co
 
 | | Hoje (ordem de chegada) | Com a solução |
 |---|---|---|
-| Perda esperada na fila atual | R$ 128 mil | **R$ 105 mil** (recupera R$ 22.951: R$ 12.962 da reordenação da fila humana e R$ 9.989 supondo que as automações resolvem no mesmo dia) |
+| Perda esperada na fila atual | R$ 127 mil | **R$ 104 mil** (recupera R$ 22.737: R$ 12.962 da reordenação da fila humana e R$ 9.775 supondo que as automações resolvem no mesmo dia) |
 | Casos que ocupam uma pessoa | 2.042 linhas (com 42 duplicadas) | 1.451 (549 resolvidos por automação, playbook de regras, 110 horas liberadas) |
 | Dias para zerar a fila | 14 | 10 |
 
@@ -34,6 +34,7 @@ Causas raiz encontradas, com o custo mensal evitável estimado (total de cerca d
 - **Atraso**: dias úteis entre a data prometida ao cliente e 30/09. Se o cliente ainda não tem o que comprou (não entregue, ou entregue com avaria, vazamento ou item faltando), o atraso continua contando.
 - **Perda esperada** = chance de cancelamento pela faixa de atraso (parâmetros: 4%, 10%, 22%, 40%) × (valor pago + valor futuro do cliente em risco).
 - **Valor futuro em risco** = 50% × chance de recompra (70% ou 28%) × receita anual do cliente × margem bruta de 76%.
+- **Pagamento pendente**: não há o que reembolsar, então a perda é a venda não concluída: 76% do valor (a margem) + valor futuro do cliente.
 - **Prioridade** = quanto a perda cresce se o caso esperar 5 dias úteis + metade da perda que ele já carrega.
 
 Foram simulados sete critérios de ordenação sobre a fila humana, a 150 casos por dia. Ordem de chegada: R$ 97,1 mil de perda esperada. Proposta: R$ 84,2 mil. O critério "só urgência" dá R$ 78,1 mil, mas deixa os casos com mais de 10 dias de atraso esperando 6,2 dias em média, contra 4,2 na proposta. A explicação completa, com premissas e limites, está na página **Como decidimos** do app.

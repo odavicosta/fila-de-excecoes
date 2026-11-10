@@ -97,8 +97,13 @@ def atraso_em(t):
     return a
 
 
+# O que se perde se o cliente desiste: o reembolso do valor pago, mais o valor futuro dele. No pagamento pendente não
+# há o que reembolsar: perde-se a venda que não se concluiu, ou seja, a margem dela (76% do valor) mais o valor futuro.
+df["valor_em_risco"] = np.where(df.tipo_excecao == "pagamento_pendente", MARGEM * df.valor, df.valor)
+
+
 def perda(t):
-    return p_cancel(atraso_em(t)) * (df.valor.values + df.perda_cliente.values)
+    return p_cancel(atraso_em(t)) * (df.valor_em_risco.values + df.perda_cliente.values)
 
 
 df["p_cancel_hoje"] = p_cancel(df.atraso_du)
