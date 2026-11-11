@@ -8,6 +8,36 @@
 - **Causas raiz**: 7 causas ligadas a 49% das exceções, mais um fator de risco (o brinde). Corrigir esses processos evita cerca de R$ 40 mil por mês.
 - **No total**: a perda esperada cai de R$ 127 mil para R$ 104 mil. Desses R$ 22.737, R$ 9.775 supõem que as automações resolvem no mesmo dia.
 
+## Como avaliar em 2 minutos
+
+1. **Abra o link**: [fila-de-excecoes.vercel.app](https://fila-de-excecoes.vercel.app). O painel, as causas raiz e "Como decidimos" trazem os números no próprio HTML. Na **Fila do dia**, clique num caso marcado "Tratativa pronta" para ver o que o agente investigou e decidiu.
+2. **Veja o agente no código**: `lib/agente/agente.ts` (laço do agente, cota e travas) e `lib/agente/ferramentas.ts` (as ferramentas `investigar_caso` e `registrar_tratativa`). A alçada fica em `lib/regras.ts`.
+3. **Chame a API** com um caso pré-gerado. Nenhum destes exemplos gasta cota da IA: os 50 primeiros casos da fila voltam prontos, antes do limite por pessoa e sem chamar o modelo.
+
+```bash
+# caso, tratativa padrão do playbook e a tratativa da IA (funciona também no navegador)
+curl "https://fila-de-excecoes.vercel.app/api/caso?id=GB7022148"
+
+# a rota do agente, como a tela chama
+curl -X POST https://fila-de-excecoes.vercel.app/api/agente \
+  -H "Content-Type: application/json" \
+  -d '{"order_id": "GB7022148"}'
+```
+
+Outros casos prontos, de tipos diferentes: `GB7022496` (atraso; o agente executa sozinho) e `GC7012335` (falha de personalização Gocase; vai para aprovação). Na resposta, `modo: "ia"` diz que a tratativa veio do modelo, `gerado_em` diz que ela foi pré-gerada, `passos` mostra as chamadas de ferramenta e `tratativa` traz ação, alçada, custo, justificativa, mensagem ao cliente e chamado interno.
+
+Como a rota `/api/agente` se comporta:
+
+| Situação | Resposta |
+|---|---|
+| `POST` com um caso pré-gerado | `200` com a tratativa pronta, sem gastar cota |
+| `POST` com outro caso da fila | `200`; roda o agente ao vivo e gasta cota (cerca de 3.900 tokens) |
+| `POST` com `"refazer": true` | roda o agente ao vivo **mesmo num caso pré-gerado** e gasta cota |
+| `GET` | `405`, sem corpo: a rota só aceita `POST` (para ler um caso com `GET`, use `/api/caso?id=...`) |
+| Mais de 3 execuções ao vivo por minuto, ou 25 por dia, do mesmo IP | `429` com `{"erro": "..."}` explicando o limite; espere um minuto (não há cabeçalho `Retry-After`) |
+| Pedido que não está na fila / JSON inválido | `404` / `400` com `{"erro": "..."}` |
+| Cota da IA esgotada | `200` com a tratativa do playbook, `modo: "regras"`, `cota_esgotada: true`, `limite` (`"minuto"` ou `"dia"`), `espera_s` e um `aviso` com a espera real |
+
 ## O problema e a solução
 
 O time tem capacidade para 150 tratativas por dia e uma fila de 2.000 pedidos com exceção, tratada por ordem de chegada. A solução faz três coisas:
