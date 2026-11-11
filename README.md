@@ -34,7 +34,7 @@ Como a rota `/api/agente` se comporta:
 | `POST` com outro caso da fila | `200`; roda o agente ao vivo e gasta cota (cerca de 3.900 tokens) |
 | `POST` com `"refazer": true` | roda o agente ao vivo **mesmo num caso pré-gerado** e gasta cota |
 | `GET` | `405`, sem corpo: a rota só aceita `POST` (para ler um caso com `GET`, use `/api/caso?id=...`) |
-| Mais de 3 execuções ao vivo por minuto, ou 25 por dia, do mesmo IP | `429` com `{"erro": "..."}` explicando o limite; espere um minuto (não há cabeçalho `Retry-After`) |
+| Mais de 3 execuções ao vivo por minuto, ou 25 por dia, do mesmo IP (contagem aproximada, por instância do servidor) | `429` com `{"erro": "..."}` explicando o limite; espere um minuto (não há cabeçalho `Retry-After`) |
 | Pedido que não está na fila / JSON inválido | `404` / `400` com `{"erro": "..."}` |
 | Cota da IA esgotada | `200` com a tratativa do playbook, `modo: "regras"`, `cota_esgotada: true`, `limite` (`"minuto"` ou `"dia"`), `espera_s` e um `aviso` com a espera real |
 
@@ -105,11 +105,11 @@ O modelo roda no Groq (`gpt-oss-20b`, depois `gpt-oss-120b` e `qwen3.8-27b`, est
 | Por minuto | 8 mil tokens | Se a espera é de poucos segundos, o agente espera; senão, o próximo modelo assume |
 | Por dia (janela móvel de 24 h) | 200 mil tokens | Depois do primeiro aviso de limite diário, aquela instância do servidor pula o modelo sem gastar requisição até a cota voltar |
 
-Um caso gasta cerca de 3.900 tokens, medidos pelo Groq em 24 casos (de 3.600 a 4.300), em duas chamadas: investigar e registrar. Com uma correção, a terceira chamada leva o caso a 6.500 a 7.700 tokens (5 dos 50 casos pré-gerados). Antes eram três chamadas e cinco ferramentas de consulta, cerca de 8 mil tokens por caso; juntar tudo em `investigar_caso` cortou o consumo pela metade. Na prática o link aguenta **uns 2 casos por minuto em cada modelo e uns 150 por dia, somando os três modelos e todos os visitantes**. Casos com tratativa pronta e casos já rodados (cache) não gastam cota.
+Um caso gasta cerca de 3.900 tokens, medidos pelo Groq em 24 casos (de 3.600 a 4.300), em duas chamadas: investigar e registrar. Com uma correção, a terceira chamada leva o caso a 6.500 a 7.700 tokens (5 dos 50 casos pré-gerados). Antes eram três chamadas e cinco ferramentas de consulta, cerca de 8 mil tokens por caso; juntar tudo em `investigar_caso` cortou o consumo pela metade. Na prática o link aguenta **uns 2 casos por minuto em cada modelo e uns 150 por dia, somando os três modelos e todos os visitantes**. Casos com tratativa pronta não gastam cota. Casos já rodados ao vivo também não, enquanto estiverem no cache, que também fica na memória da instância e se perde quando ela é trocada.
 
 - **Um caso**: se nenhum modelo tiver cota, o playbook monta a tratativa e o app diz qual limite acabou e a espera real: "A cota gratuita de IA acabou por agora; esta tratativa veio do playbook. Tente de novo em 41 segundos." ou "A cota diária gratuita de IA acabou; esta tratativa veio do playbook. A IA volta em cerca de 12 minutos."
 - **Lote de 5** ("Rodar o agente nos próximos 5"): espaça os casos (no mínimo 21 s, ou o que a cota pedir) e mostra "Aguardando cota de IA: N s". No limite por minuto, espera e roda o caso de novo (até 6 vezes). No limite diário, para e explica, porque esperar segundos não resolve.
-- **Limite por pessoa**: 3 execuções por minuto e 25 por dia por IP (`LIMITE_POR_MINUTO` e `LIMITE_POR_DIA`), para um visitante não esgotar a cota dos outros.
+- **Limite por pessoa**: 3 execuções por minuto e 25 por dia por IP (`LIMITE_POR_MINUTO` e `LIMITE_POR_DIA`), para um visitante não esgotar a cota dos outros. É aproximado: a contagem fica na memória de cada instância do servidor no Vercel, então zera quando uma instância nova sobe e não é somada entre instâncias. Um limite exato pediria um armazenamento compartilhado (por exemplo Redis), que este projeto não usa.
 - **Tratativas prontas**: os 50 primeiros casos da fila já têm a tratativa gerada pela IA em `lib/data/pregerados.json` (21 pelo `gpt-oss-20b`, 22 pelo `gpt-oss-120b` e 7 pelo `qwen3.8-27b`, sem passar de metade do limite diário de nenhum). Ao abrir um deles, o resultado aparece na hora com a etiqueta "Resultado gerado em DD/MM" e não gasta cota; "Rodar de novo" roda o agente ao vivo. Para gerar de novo, rode o app local com um modelo só e use `node scripts/pregerar.mjs http://localhost:3000 50 100000` (quantidade e orçamento de tokens); o script para antes do orçamento e na cota diária, e recusa rodar contra o link público.
 
 #### Travas no código
