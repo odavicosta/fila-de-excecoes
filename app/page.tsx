@@ -1,6 +1,6 @@
 import Armazem from "@/components/Armazem";
 import Barras from "@/components/Barras";
-import { casos, resumo } from "@/lib/dados";
+import { casos, idsPregerados, resumo } from "@/lib/dados";
 import { TIPO, brl, dec, num, porExtenso } from "@/lib/rotulos";
 import Link from "next/link";
 
@@ -35,8 +35,8 @@ export default function Painel() {
       <h1>Hoje o time trata {k.capacidade} exceções. Estas são as que mais evitam perda.</h1>
       <p className="lead">
         São {num(k.pedidos)} pedidos fora do fluxo e capacidade para {k.capacidade} tratativas por dia. Em vez de seguir a ordem de chegada, cada
-        caso é ordenado pela perda que evita se for tratado agora. Os casos simples saem por automação (playbook de regras), e cada caso da fila humana chega
-        investigado pelo agente de IA, com as mensagens prontas.
+        caso é ordenado pela perda que evita se for tratado agora. Os casos simples saem por automação (playbook de regras). Cada caso da fila humana pode ser
+        investigado pelo agente de IA, que propõe a tratativa com as mensagens prontas; os {idsPregerados.length} primeiros já vêm prontos.
       </p>
 
       <Armazem humana={humana} auto={auto} capacidade={k.capacidade} />
