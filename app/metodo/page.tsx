@@ -100,7 +100,8 @@ export default function Metodo() {
       <ul>
         <li>Mensagens, cobrança da transportadora, confirmação de endereço e link de pagamento: o agente executa sozinho.</li>
         <li>Reenvio ou nova produção até {brl(LIMITE_AGENTE)} (87% dos casos custam menos que isso): o agente executa sozinho.</li>
-        <li>Reembolso, oferta de substituto, gasto acima de {brl(LIMITE_AGENTE)} ou qualquer gasto com cliente de alto valor: uma pessoa aprova.</li>
+        <li>Cupom padrão de desculpas de 10%: o agente executa sozinho, mesmo para cliente de alto valor.</li>
+        <li>Reembolso, oferta de substituto, gasto acima de {brl(LIMITE_AGENTE)} ou qualquer outro gasto com cliente de alto valor: uma pessoa aprova.</li>
       </ul>
       <p>
         <b>Quando vira extravio.</b> Atraso na entrega e rastreio parado seguem o mesmo critério: se o pedido não foi entregue e já passou mais de 10 dias
