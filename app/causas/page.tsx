@@ -30,6 +30,10 @@ export default function Causas() {
         recorrente que nenhuma tratativa individual resolve. Corrigir os processos abaixo evita cerca de {brl(k.processo_mensal)} por mês em reenvios,
         contatos e cancelamentos. Quando o agente trata um caso que cai num desses padrões, manda o alerta junto com a tratativa.
       </p>
+      <p className="miudo" style={{ marginTop: 12, maxWidth: "75ch" }}>
+        Abaixo estão {porExtenso(achados.length)} cartões: as {porExtenso(k.n_causas_raiz)} causas raiz; o brinde de campanha, que é um fator de risco
+        e não entra nos {num(k.casos_com_causa_sistemica)} casos acima; e os pedidos duplicados, que são um problema de dados, sem custo de processo.
+      </p>
       <div style={{ marginTop: 36 }}>
         {achados.map((a) => (
           <article key={a.id} className="achado">
