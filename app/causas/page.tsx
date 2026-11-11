@@ -28,7 +28,7 @@ export default function Causas() {
       <p className="lead">
         {num(k.casos_com_causa_sistemica)} dos {num(k.pedidos)} casos ({Math.round((k.casos_com_causa_sistemica / k.pedidos) * 100)}%) estão ligados a um problema
         recorrente que nenhuma tratativa individual resolve. Corrigir os processos abaixo evita cerca de {brl(k.processo_mensal)} por mês em reenvios,
-        contatos e cancelamentos. O agente marca cada caso novo que cai num desses padrões e manda o alerta junto com a tratativa.
+        contatos e cancelamentos. Quando o agente trata um caso que cai num desses padrões, manda o alerta junto com a tratativa.
       </p>
       <div style={{ marginTop: 36 }}>
         {achados.map((a) => (
