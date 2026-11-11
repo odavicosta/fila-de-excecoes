@@ -83,7 +83,7 @@ Foram simulados sete critérios de ordenação sobre a fila humana, a 150 casos 
 
 ### O agente
 
-`lib/agente/` tem o laço do agente (chamadas com *tool calling* no formato OpenAI) e duas ferramentas. O agente faz duas chamadas ao modelo por caso: investiga e decide.
+`lib/agente/` tem o laço do agente (chamadas com *tool calling* no formato OpenAI) e duas ferramentas. Normalmente o agente faz duas chamadas ao modelo por caso: investiga e decide. Quando uma trava devolve a tratativa para correção, há uma terceira.
 
 | Ferramenta | O que faz |
 |---|---|
@@ -103,9 +103,9 @@ O modelo roda no Groq (`gpt-oss-20b`, depois `gpt-oss-120b` e `qwen3.8-27b`, est
 | Limite | Valor | O que acontece quando acaba |
 |---|---|---|
 | Por minuto | 8 mil tokens | Se a espera é de poucos segundos, o agente espera; senão, o próximo modelo assume |
-| Por dia (janela móvel de 24 h) | 200 mil tokens | O modelo é pulado sem gastar requisição até a cota voltar |
+| Por dia (janela móvel de 24 h) | 200 mil tokens | Depois do primeiro aviso de limite diário, aquela instância do servidor pula o modelo sem gastar requisição até a cota voltar |
 
-Um caso gasta cerca de 3.900 tokens, medidos pelo Groq em 24 casos (de 3.600 a 4.300), em duas chamadas: investigar e registrar. Antes eram três chamadas e cinco ferramentas de consulta, cerca de 8 mil tokens por caso; juntar tudo em `investigar_caso` cortou o consumo pela metade. Na prática o link aguenta **uns 2 casos por minuto em cada modelo e uns 150 por dia, somando os três modelos e todos os visitantes**. Casos com tratativa pronta e casos já rodados (cache) não gastam cota.
+Um caso gasta cerca de 3.900 tokens, medidos pelo Groq em 24 casos (de 3.600 a 4.300), em duas chamadas: investigar e registrar. Com uma correção, a terceira chamada leva o caso a 6.500 a 7.700 tokens (5 dos 50 casos pré-gerados). Antes eram três chamadas e cinco ferramentas de consulta, cerca de 8 mil tokens por caso; juntar tudo em `investigar_caso` cortou o consumo pela metade. Na prática o link aguenta **uns 2 casos por minuto em cada modelo e uns 150 por dia, somando os três modelos e todos os visitantes**. Casos com tratativa pronta e casos já rodados (cache) não gastam cota.
 
 - **Um caso**: se nenhum modelo tiver cota, o playbook monta a tratativa e o app diz qual limite acabou e a espera real: "A cota gratuita de IA acabou por agora; esta tratativa veio do playbook. Tente de novo em 41 segundos." ou "A cota diária gratuita de IA acabou; esta tratativa veio do playbook. A IA volta em cerca de 12 minutos."
 - **Lote de 5** ("Rodar o agente nos próximos 5"): espaça os casos (no mínimo 21 s, ou o que a cota pedir) e mostra "Aguardando cota de IA: N s". No limite por minuto, espera e roda o caso de novo (até 6 vezes). No limite diário, para e explica, porque esperar segundos não resolve.
@@ -114,9 +114,9 @@ Um caso gasta cerca de 3.900 tokens, medidos pelo Groq em 24 casos (de 3.600 a 4
 
 #### Travas no código
 
-`registrar_tratativa` só é aceita depois de `investigar_caso`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, quando a mensagem diz "já enviamos" num caso que ainda depende de aprovação, ou quando a justificativa ou a mensagem termina no meio de uma frase. Se o modelo insistir numa mensagem proibida, ela é trocada pela do playbook.
+`registrar_tratativa` só é aceita depois de `investigar_caso`, e a ação precisa estar entre as opções do caso. Uma tratativa volta uma vez para o modelo corrigir quando a justificativa diz "dentro da alçada do agente" num caso que vai para aprovação, quando a mensagem diz "atrasado" num pedido entregue com problema, quando a mensagem diz "já enviamos" num caso que ainda depende de aprovação, quando a mensagem diz que um pedido não entregue "chegou", ou quando a justificativa ou a mensagem termina no meio de uma frase. Se o modelo insistir numa mensagem proibida, ela é trocada pela do playbook.
 
-Mensagens do playbook: em caso que vai para aprovação, falam no futuro ("vamos enviar"), porque só saem depois dela; nenhuma promete prazo que depende da transportadora. Em aguardando cliente, a base não diz o que falta, então o agente pede uma resposta sem inventar o motivo. Pedido Gocase é sempre personalizado: refazer é nova produção, não nova separação no CD.
+Mensagens do playbook: em caso que vai para aprovação, falam no futuro ("vamos enviar"), porque só saem depois dela; nenhuma promete prazo que depende da transportadora. Em aguardando cliente, a base não diz o que falta: a investigação avisa isso e o prompt manda pedir uma resposta sem inventar o motivo. Aqui é só instrução ao modelo, sem trava no código. Pedido Gocase é sempre personalizado: refazer é nova produção, não nova separação no CD.
 
 ### Rodar localmente
 
